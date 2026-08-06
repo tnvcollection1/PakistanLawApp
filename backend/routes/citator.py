@@ -1,116 +1,37 @@
-from flask import Blueprint, jsonify, request
-from services.citation_service import CitationService
-from middleware.auth import token_required
-from database.models import Case
-import logging
+from flask import Blueprint, request, jsonify
+import sqlite3
+from config import DATABASE
 
-logger = logging.getLogger(__name__)
-citator_bp = Blueprint('citator', __name__)
-citation_service = CitationService()
+citator_bp = Blueprint("citator", __name__)
 
-@citator_bp.route('/api/cases/<case_id>/citations', methods=['GET'])
-@token_required
-def get_case_citations(case_id):
-    """Get all citations for a case."""
-    try:
-        citations = citation_service.get_citations(case_id)
-        return jsonify({
-            'success': True,
-            'citations': citations
-        })
-    except Exception as e:
-        logger.error(f"Error getting citations: {e}")
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
+@citator_bp.route("/api/cases/<int:case_id>/citations", methods=["GET"])
+def get_citations(case_id):
+    conn = sqlite3.connect(DATABASE)
+    c = conn.cursor()
+    # Outgoing citations (this case cites others)
+    c.execute("SELECT cited_case_id, citation_count FROM citations WHERE case_id = ?", (case_id,))
+    outgoing = [{"case_id": r[0], "count": r[1]} for r in c.fetchall()]
+    # Incoming citations (other cases cite this)
+    c.execute("SELECT case_id, citation_count FROM citations WHERE cited_case_id = ?", (case_id,))
+    incoming = [{"case_id": r[0], "count": r[1]} for r in c.fetchall()]
+    conn.close()
+    return jsonify({"outgoing": outgoing, "incoming": incoming})
 
-@citator_bp.route('/api/cases/<case_id>/citing', methods=['GET'])
-@token_required
-def get_citing_cases(case_id):
-    """Get cases that cite this case."""
-    try:
-        citing_cases = citation_service.get_citing_cases(case_id)
-        return jsonify({
-            'success': True,
-            'citing_cases': citing_cases
-        })
-    except Exception as e:
-        logger.error(f"Error getting citing cases: {e}")
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
-
-@citator_bp.route('/api/cases/<case_id>/cited-by', methods=['GET'])
-@token_required
-def get_cited_by_cases(case_id):
-    """Get cases cited by this case."""
-    try:
-        cited_cases = citation_service.get_cited_cases(case_id)
-        return jsonify({
-            'success': True,
-            'cited_cases': cited_cases
-        })
-    except Exception as e:
-        logger.error(f"Error getting cited cases: {e}")
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
-
-@citator_bp.route('/api/cases/most-cited', methods=['GET'])
-@token_required
-def get_most_cited_cases():
-    """Get most frequently cited cases."""
-    try:
-        limit = request.args.get('limit', 50, type=int)
-        cases = citation_service.get_most_cited_cases(limit)
-        return jsonify({
-            'success': True,
-            'cases': cases
-        })
-    except Exception as e:
-        logger.error(f"Error getting most cited cases: {e}")
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
-
-@citator_bp.route('/api/citations/analyze', methods=['POST'])
-@token_required
-def analyze_citations():
-    """Analyze citations for given cases."""
-    try:
-        data = request.get_json()
-        case_ids = data.get('case_ids', [])
-        analysis = citation_service.analyze_citations(case_ids)
-        return jsonify({
-            'success': True,
-            'analysis': analysis
-        })
-    except Exception as e:
-        logger.error(f"Error analyzing citations: {e}")
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
-
-@citator_bp.route('/api/citations/build', methods=['POST'])
-@token_required
-def build_citation_network():
-    """Build citation network for visualization."""    
-    try:
-        data = request.get_json()
-        case_ids = data.get('case_ids', [])
-        network = citation_service.build_citation_network(case_ids)
-        return jsonify({
-            'success': True,
-            'network': network
-        })
-    except Exception as e:
-        logger.error(f"Error building citation network: {e}")
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
+@citator_bp.route("/api/cases/most-cited", methods=["GET"])
+def most_cited():
+    page = int(request.args.get("page", 1))
+    per_page = int(request.args.get("per_page", 20))
+    offset = (page - 1) * per_page
+    conn = sqlite3.connect(DATABASE)
+    c = conn.cursor()
+    c.execute("""
+        SELECT c.id, c.title, c.citation, COUNT(*) as citation_count
+        FROM citations ci
+        JOIN cases c ON ci.cited_case_id = c.id
+        GROUP BY c.id
+        ORDER BY citation_count DESC
+        LIMIT ? OFFSET ?
+    """, (per_page, offset))
+    rows = c.fetchall()
+    conn.close()
+    return jsonify({"cases": [{"id": r[0], "title": r[1], "citation": r[2], "citation_count": r[3]} for r in rows]})

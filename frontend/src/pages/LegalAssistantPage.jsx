@@ -1,120 +1,79 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { useToast } from '@/hooks/use-toast';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, Loader2, Paperclip } from 'lucide-react';
-import AITypingIndicator from './AITypingIndicator';
-import ChatMessage from './ChatMessage';
+import React, { useState, useRef, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Send, Bot, User } from "lucide-react";
+import { toast } from "sonner";
+import ReactMarkdown from "react-markdown";
 
-const LegalAssistantPage = () => {
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef(null);
-  const { toast } = useToast();
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+export default function LegalAssistantPage() {
+  const [messages, setMessages] = useState([
+    { role: "assistant", content: "Hello! I am your Pakistan Legal Assistant. How can I help you today?" }
+  ]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const bottomRef = useRef(null);
 
   useEffect(() => {
-    scrollToBottom();
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   const sendMessage = async () => {
     if (!input.trim()) return;
-
-    const userMessage = { role: 'user', content: input, timestamp: new Date() };
-    setMessages(prev => [...prev, userMessage]);
-    setInput('');
-    setIsLoading(true);
-
+    const userMsg = { role: "user", content: input };
+    setMessages((prev) => [...prev, userMsg]);
+    setInput("");
+    setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/legal-assistant/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ message: input, history: messages })
+      const res = await fetch("/api/assistant", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: input }),
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to get response');
-      }
-
-      const data = await response.json();
-      const assistantMessage = {
-        role: 'assistant',
-        content: data.response,
-        sources: data.sources || [],
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, assistantMessage]);
-    } catch (error) {
-      console.error('Error:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to get response from legal assistant',
-        variant: 'destructive',
-      });
+      const data = await res.json();
+      setMessages((prev) => [...prev, { role: "assistant", content: data.reply }]);
+    } catch {
+      toast.error("Failed to get response");
     } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
+      setLoading(false);
     }
   };
 
   return (
-    <div className="flex flex-col h-screen">
-      <div className="p-4 border-b">
-        <h1 className="text-2xl font-bold">Legal Assistant</h1>
-        <p className="text-sm text-muted-foreground">AI-powered legal research assistant</p>
-      </div>
-
-      <ScrollArea className="flex-1 p-4">
-        <div className="space-y-4">
-          {messages.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              <p>Ask a legal question to get started</p>
-              <p className="text-sm mt-2">Example: "What are the requirements for a valid contract in Pakistan?"</p>
+    <div className="max-w-2xl mx-auto p-4 h-[calc(100vh-4rem)] flex flex-col">
+      <h1 className="text-2xl font-bold mb-4">Legal Assistant</h1>
+      <Card className="flex-1 flex flex-col">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Bot className="w-5 h-5" />
+            AI Legal Assistant
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex-1 overflow-y-auto space-y-4">
+          {messages.map((msg, i) => (
+            <div key={i} className={`flex gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+              {msg.role === "assistant" && <Bot className="w-5 h-5 mt-1 shrink-0" />}
+              <div className={`max-w-[80%] p-3 rounded-lg ${msg.role === "user" ? "bg-blue-600 text-white" : "bg-gray-100"}`}>
+                <ReactMarkdown className="prose prose-sm">{msg.content}</ReactMarkdown>
+              </div>
+              {msg.role === "user" && <User className="w-5 h-5 mt-1 shrink-0" />}
             </div>
-          )}
-          {messages.map((message, index) => (
-            <ChatMessage key={index} message={message} />
           ))}
-          {isLoading && <AITypingIndicator />}
-          <div ref={messagesEndRef} />
-        </div>
-      </ScrollArea>
-
-      <div className="p-4 border-t">
-        <div className="flex gap-2">
-          <Textarea
+          {loading && <div className="text-sm text-gray-500">Assistant is typing...</div>}
+          <div ref={bottomRef} />
+        </CardContent>
+        <div className="p-4 border-t flex gap-2">
+          <Input
+            placeholder="Ask a legal question..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyPress}
-            placeholder="Type your legal question..."
-            className="flex-1 min-h-[80px]"
+            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
           />
-          <div className="flex flex-col gap-2">
-            <Button onClick={sendMessage} disabled={isLoading || !input.trim()}>
-              <Send className="h-4 w-4" />
-            </Button>
-          </div>
+          <Button onClick={sendMessage} disabled={loading}>
+            <Send className="w-4 h-4" />
+          </Button>
         </div>
-      </div>
+      </Card>
     </div>
   );
-};
-
-export default LegalAssistantPage;
+}

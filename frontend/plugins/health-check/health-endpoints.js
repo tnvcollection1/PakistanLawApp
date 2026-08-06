@@ -1,59 +1,32 @@
-const checkHealth = async (req, res) => {
-  try {
-    const healthcheck = {
-      uptime: process.uptime(),
-      message: 'OK',
-      timestamp: Date.now(),
-      environment: process.env.NODE_ENV || 'development',
-      version: process.env.npm_package_version || '1.0.0',
-    };
-    res.status(200).json(healthcheck);
-  } catch (error) {
-    res.status(500).json({
-      message: 'Health check failed',
-      error: error.message,
-    });
-  }
-};
+const express = require('express');
+const router = express.Router();
 
-const checkDatabaseHealth = async (req, res) => {
-  try {
-    // Check database connection
-    const dbStatus = await checkDatabaseConnection();
-    res.status(200).json({
-      database: dbStatus ? 'connected' : 'disconnected',
-      timestamp: Date.now(),
-    });
-  } catch (error) {
-    res.status(500).json({
-      database: 'error',
-      error: error.message,
-      timestamp: Date.now(),
-    });
-  }
-};
+router.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
 
-const checkExternalServices = async (req, res) => {
-  try {
-    const services = {
-      api: { status: 'up', latency: 0 },
-      database: { status: 'up', latency: 0 },
-      cache: { status: 'up', latency: 0 },
-    };
-    res.status(200).json({
-      services,
-      timestamp: Date.now(),
-    });
-  } catch (error) {
-    res.status(500).json({
-      message: 'External services check failed',
-      error: error.message,
-    });
+router.get('/health/db', (req, res) => {
+  // Check database connectivity
+  const db = req.app.locals.db;
+  if (db) {
+    res.json({ status: 'ok', service: 'database' });
+  } else {
+    res.status(503).json({ status: 'error', service: 'database' });
   }
-};
+});
 
-module.exports = {
-  checkHealth,
-  checkDatabaseHealth,
-  checkExternalServices,
-};
+router.get('/health/external', async (req, res) => {
+  // Check external API connectivity
+  try {
+    const response = await fetch(process.env.EXTERNAL_API_URL + '/health');
+    if (response.ok) {
+      res.json({ status: 'ok', service: 'external_api' });
+    } else {
+      res.status(503).json({ status: 'error', service: 'external_api' });
+    }
+  } catch (e) {
+    res.status(503).json({ status: 'error', service: 'external_api', message: e.message });
+  }
+});
+
+module.exports = router;
