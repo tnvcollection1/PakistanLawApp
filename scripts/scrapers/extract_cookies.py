@@ -1,18 +1,13 @@
-import requests
-from bs4 import BeautifulSoup
+import json
 
-BASE = "https://plsbeta.com"
+with open("data/sindh_cases.json", "r", encoding="utf-8") as f:
+    cases = json.load(f)
 
-def extract_cookies():
-    session = requests.Session()
-    r = session.get(f"{BASE}/login", timeout=30)
-    cookies = session.cookies.get_dict()
-    return cookies
-
-def run():
-    cookies = extract_cookies()
-    print(json.dumps(cookies, indent=2))
-
-if __name__ == "__main__":
-    import json
-    run()
+for case in cases[:3]:
+    print("---")
+    print("Title:", case.get("title"))
+    print("Date:", case.get("date"))
+    print("Court:", case.get("court"))
+    print("Citation:", case.get("citation"))
+    print("Category:", case.get("category"))
+    print("Text length:", len(case.get("full_text", "")))

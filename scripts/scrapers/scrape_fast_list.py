@@ -1,21 +1,13 @@
-import requests
 import json
-import os
 
-BASE = "https://plsbeta.com"
-TOKEN = os.getenv("PLSBETA_TOKEN", "")
-HEADERS = {"Authorization": f"Bearer {TOKEN}"}
+with open("data/sindh_cases.json", "r", encoding="utf-8") as f:
+    cases = json.load(f)
 
-def fetch_list_fast():
-    r = requests.get(f"{BASE}/api/cases/list", headers=HEADERS, timeout=30)
-    return r.json()
-
-def run():
-    cases = fetch_list_fast()
-    with open("data/fast_list.json", "w") as f:
-        json.dump(cases, f, indent=2)
-    print(f"Fetched {len(cases)} cases")
-
-if __name__ == "__main__":
-    os.makedirs("data", exist_ok=True)
-    run()
+for case in cases[:3]:
+    print("---")
+    print("Title:", case.get("title"))
+    print("Date:", case.get("date"))
+    print("Court:", case.get("court"))
+    print("Citation:", case.get("citation"))
+    print("Category:", case.get("category"))
+    print("Text length:", len(case.get("full_text", "")))

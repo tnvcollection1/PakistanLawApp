@@ -1,28 +1,13 @@
-import requests
 import json
-import os
 
-BASE = "https://plsbeta.com"
-TOKEN = os.getenv("PLSBETA_TOKEN", "")
-HEADERS = {"Authorization": f"Bearer {TOKEN}"}
+with open("data/sindh_cases.json", "r", encoding="utf-8") as f:
+    cases = json.load(f)
 
-def fetch_all_ids():
-    r = requests.get(f"{BASE}/api/cases/ids", headers=HEADERS, timeout=30)
-    return r.json()
-
-def find_missing(local_ids):
-    remote_ids = set(fetch_all_ids())
-    local_set = set(local_ids)
-    missing = remote_ids - local_set
-    return list(missing)
-
-def run():
-    with open("data/local_ids.json") as f:
-        local_ids = json.load(f)
-    missing = find_missing(local_ids)
-    with open("data/missing_ids.json", "w") as f:
-        json.dump(missing, f, indent=2)
-    print(f"Found {len(missing)} missing cases")
-
-if __name__ == "__main__":
-    run()
+for case in cases[:3]:
+    print("---")
+    print("Title:", case.get("title"))
+    print("Date:", case.get("date"))
+    print("Court:", case.get("court"))
+    print("Citation:", case.get("citation"))
+    print("Category:", case.get("category"))
+    print("Text length:", len(case.get("full_text", "")))

@@ -1,21 +1,13 @@
-import sqlite3
-from pathlib import Path
+import json
 
-DB_PATH = Path(__file__).parent.parent / "instance" / "pakistan_law.db"
+with open("data/sindh_cases.json", "r", encoding="utf-8") as f:
+    cases = json.load(f)
 
-def import_headnotes(headnotes_file):
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    with open(headnotes_file, 'r') as f:
-        for line in f:
-            case_id, headnote = line.strip().split("\t", 1)
-            c.execute("UPDATE cases SET headnote = ? WHERE id = ?", (headnote, case_id))
-    conn.commit()
-    conn.close()
-    print("Headnotes imported")
-
-def run():
-    import_headnotes("data/headnotes.tsv")
-
-if __name__ == "__main__":
-    run()
+for case in cases[:3]:
+    print("---")
+    print("Title:", case.get("title"))
+    print("Date:", case.get("date"))
+    print("Court:", case.get("court"))
+    print("Citation:", case.get("citation"))
+    print("Category:", case.get("category"))
+    print("Text length:", len(case.get("full_text", "")))

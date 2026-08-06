@@ -1,20 +1,13 @@
-// Console utility for digilawyer scraping
-const https = require('https');
+import json
 
-function fetch(url) {
-  return new Promise((resolve, reject) => {
-    https.get(url, (res) => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => resolve(data));
-    }).on('error', reject);
-  });
-}
+with open("data/sindh_cases.json", "r", encoding="utf-8") as f:
+    cases = json.load(f)
 
-async function scrapeCases() {
-  const html = await fetch('https://digilawyer.com/cases');
-  console.log('Fetched cases page');
-  return html;
-}
-
-module.exports = { scrapeCases };
+for case in cases[:3]:
+    print("---")
+    print("Title:", case.get("title"))
+    print("Date:", case.get("date"))
+    print("Court:", case.get("court"))
+    print("Citation:", case.get("citation"))
+    print("Category:", case.get("category"))
+    print("Text length:", len(case.get("full_text", "")))
