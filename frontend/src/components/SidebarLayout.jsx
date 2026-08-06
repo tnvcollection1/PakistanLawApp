@@ -1,35 +1,99 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { Home, Search, BookOpen, Scale, Building2, BookMarked, Menu, X } from "lucide-react";
+
+const NAV_ITEMS = [
+  { path: "/", label: "Home", icon: Home },
+  { path: "/citation-search", label: "Citation Search", icon: Search },
+  { path: "/cases", label: "Cases", icon: BookOpen },
+  { path: "/courts", label: "Courts", icon: Scale },
+  { path: "/laws", label: "Laws", icon: BookMarked },
+  { path: "/journals", label: "Journals", icon: Building2 },
+];
 
 export default function SidebarLayout({ children }) {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
+
+  // Close sidebar on route change (mobile)
+  useEffect(() => {
+    setIsOpen(false);
+  }, [location.pathname]);
+
+  // Close on Escape key
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === "Escape") setIsOpen(false);
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, []);
+
+  // Lock body scroll when sidebar open on mobile
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [isOpen]);
 
   return (
-    <div className="flex h-screen">
-      <aside className={`${sidebarOpen ? 'w-64' : 'w-0'} bg-gray-900 text-white transition-all duration-300 overflow-hidden`}>
-        <div className="p-4">
-          <h2 className="text-xl font-bold mb-4">Pakistan Law App</h2>
-          <nav className="space-y-2">
-            <a href="/" className="block p-2 rounded hover:bg-gray-800">Home</a>
-            <a href="/cases" className="block p-2 rounded hover:bg-gray-800">Cases</a>
-            <a href="/statutes" className="block p-2 rounded hover:bg-gray-800">Statutes</a>
-            <a href="/citation-parser" className="block p-2 rounded hover:bg-gray-800">Citation Parser</a>
-            <a href="/analytics" className="block p-2 rounded hover:bg-gray-800">Analytics</a>
-          </nav>
-        </div>
-      </aside>
-      <main className="flex-1 overflow-auto">
-        <header className="bg-white shadow-sm p-4 flex items-center">
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-2 rounded-lg hover:bg-gray-100 mr-4"
-          >
-            ☰
-          </button>
-          <h1 className="text-xl font-semibold">Pakistan LawSite Clone</h1>
-        </header>
+    <div className="flex h-screen bg-gray-50">
+      {/* Mobile overlay */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+
+      {/* Hamburger button - only on mobile */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-md md:hidden"
+        aria-label="Toggle menu"
+      >
+        {isOpen ? <X size={20} /> : <Menu size={20} />}
+      </button>
+
+      {/* Sidebar */}
+      <aside
+        className={`fixed left-0 top-0 h-full w-64 bg-[#1a365d] text-white z-50 transition-transform duration-300 ease-in-out
+          ${isOpen ? "translate-x-0" : "-translate-x-full"}
+          md:translate-x-0 md:static md:z-auto`}
+      >
         <div className="p-6">
-          {children}
+          <h1 className="text-xl font-bold flex items-center gap-2">
+            <Scale size={24} className="text-[#c9a227]" />
+            Pakistan Law App
+          </h1>
         </div>
+
+        <nav className="px-4 pb-4">
+          {NAV_ITEMS.map((item) => {
+            const Icon = item.icon;
+            const isActive = location.pathname === item.path;
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                onClick={() => setIsOpen(false)}
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg mb-1 transition-colors
+                  ${isActive ? "bg-[#c9a227] text-[#1a365d] font-semibold" : "hover:bg-white/10"}`}
+              >
+                <Icon size={18} />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+      </aside>
+
+      {/* Main content */}
+      <main className="flex-1 overflow-y-auto min-w-0">
+        {children}
       </main>
     </div>
   );
