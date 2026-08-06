@@ -1,4 +1,8 @@
-const { override, addBabelPlugin } = require('customize-cra');
+const { override, addWebpackAlias } = require('customize-cra');
+const path = require('path');
+
 module.exports = override(
-  addBabelPlugin('styled-jsx/babel')
+  addWebpackAlias({
+    '@': path.resolve(__dirname, 'src'),
+  })
 );
