@@ -1,1 +1,29 @@
-REPLACE_WITH_COMPOSE
+version: '3.8'
+
+services:
+  backend:
+    build: .
+    ports:
+      - "8020:8020"
+    environment:
+      - MONGO_URL=mongodb://mongo:27017
+      - DB_NAME=pakistanlaw
+    depends_on:
+      - mongo
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+  mongo:
+    image: mongo:6
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:
