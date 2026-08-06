@@ -1,40 +1,38 @@
-import React from "react";
-import { Separator } from "@/components/ui/separator";
+import React from 'react';
 
-export default function PrivacyPolicyPage() {
+const PrivacyPolicyPage = () => {
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-4">Privacy Policy</h1>
-      <p className="text-muted-foreground mb-6">
-        Last updated: January 2024
-      </p>
-      <Separator className="my-6" />
-      <div className="space-y-6 max-w-3xl">
+    <div className="max-w-4xl mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-6">Privacy Policy</h1>
+      
+      <div className="space-y-6 text-gray-700">
         <section>
-          <h2 className="text-xl font-semibold mb-2">1. Information We Collect</h2>
-          <p className="text-muted-foreground">
-            We collect information you provide directly to us, including your email address, name, and any search queries you make on our platform.
-          </p>
+          <h2 className="text-xl font-semibold mb-2">Information We Collect</h2>
+          <p>We collect information you provide directly to us, such as when you create an account, use our services, or contact us.</p>
         </section>
+
         <section>
-          <h2 className="text-xl font-semibold mb-2">2. How We Use Information</h2>
-          <p className="text-muted-foreground">
-            We use the information to provide and improve our services, personalize your experience, and communicate with you about updates and features.
-          </p>
+          <h2 className="text-xl font-semibold mb-2">How We Use Your Information</h2>
+          <p>We use the information we collect to provide, maintain, and improve our services, and to communicate with you.</p>
         </section>
+
         <section>
-          <h2 className="text-xl font-semibold mb-2">3. Data Security</h2>
-          <p className="text-muted-foreground">
-            We implement appropriate security measures to protect your personal information from unauthorized access or disclosure.
-          </p>
+          <h2 className="text-xl font-semibold mb-2">Information Sharing</h2>
+          <p>We do not sell your personal information. We may share information with service providers who assist us in operating our platform.</p>
         </section>
+
         <section>
-          <h2 className="text-xl font-semibold mb-2">4. Contact Us</h2>
-          <p className="text-muted-foreground">
-            If you have any questions about this Privacy Policy, please contact us at privacy@pakistanlaw.pk.
-          </p>
+          <h2 className="text-xl font-semibold mb-2">Data Security</h2>
+          <p>We implement reasonable security measures to protect your information from unauthorized access and disclosure.</p>
+        </section>
+
+        <section>
+          <h2 className="text-xl font-semibold mb-2">Contact Us</h2>
+          <p>If you have any questions about this Privacy Policy, please contact us at privacy@pakistanlawsite.com</p>
         </section>
       </div>
     </div>
   );
-}
+};
+
+export default PrivacyPolicyPage;

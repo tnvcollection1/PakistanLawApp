@@ -1,50 +1,48 @@
-"""
-Scrape PLS Beta Turbo - Turbo scraper for PLS Beta
-"""
-import json
+#!/usr/bin/env python3
+"""Turbo scraper for PLS Beta with optimized performance"""
+
 import requests
-from bs4 import BeautifulSoup
+import json
+import time
 import concurrent.futures
+from bs4 import BeautifulSoup
 
-BASE_URL = "https://www.pls-beta.com"
+BASE_URL = "https://beta.pakistanlawsite.com"
 
-class TurboScraper:
-    def __init__(self, max_workers=50):
-        self.max_workers = max_workers
+def fetch_case(case_id):
+    """Fetch a single case"""
+    url = f"{BASE_URL}/case/{case_id}"
+    try:
+        response = requests.get(url, timeout=30)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        return {
+            'case_id': case_id,
+            'title': soup.find('h1').text.strip() if soup.find('h1') else '',
+            'content': soup.find('div', class_='case-content').text.strip() if soup.find('div', class_='case-content') else '',
+            'status': 'success'
+        }
+    except Exception as e:
+        return {'case_id': case_id, 'status': 'error', 'error': str(e)}
 
-    def fetch_case(self, case_id):
-        url = f"{BASE_URL}/cases/{case_id}"
-        try:
-            resp = requests.get(url, timeout=10)
-            if resp.status_code != 200:
-                return None
-            soup = BeautifulSoup(resp.text, 'html.parser')
-            return {
-                'id': case_id,
-                'title': soup.select_one('h1').get_text(strip=True) if soup.select_one('h1') else None,
-                'content': soup.select_one('.content').get_text(strip=True) if soup.select_one('.content') else None,
-                'citations': [c.get_text(strip=True) for c in soup.select('.citation')],
-            }
-        except Exception as e:
-            return None
+def turbo_scrape(case_ids, max_workers=20):
+    """Turbo scrape multiple cases"""
+    results = []
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+        future_to_id = {executor.submit(fetch_case, cid): cid for cid in case_ids}
+        for future in concurrent.futures.as_completed(future_to_id):
+            result = future.result()
+            results.append(result)
+    return results
 
-    def scrape_range(self, start, end):
-        results = []
-        with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as executor:
-            future_to_id = {executor.submit(self.fetch_case, i): i for i in range(start, end + 1)}
-            for future in concurrent.futures.as_completed(future_to_id):
-                case_id = future_to_id[future]
-                try:
-                    result = future.result()
-                    if result:
-                        results.append(result)
-                except Exception as e:
-                    print(f"Error for case {case_id}: {e}")
-        return results
+def main():
+    case_ids = [f"case_{i}" for i in range(1, 101)]
+    results = turbo_scrape(case_ids)
+    
+    success = sum(1 for r in results if r['status'] == 'success')
+    print(f"Scraped {success}/{len(results)} cases successfully")
+    
+    with open('plsbeta_turbo.json', 'w') as f:
+        json.dump(results, f, indent=2)
 
 if __name__ == '__main__':
-    scraper = TurboScraper()
-    results = scraper.scrape_range(1, 100)
-    print(f"Scraped {len(results)} cases")
-    with open('turbo_results.json', 'w') as f:
-        json.dump(results, f, indent=2)
+    main()

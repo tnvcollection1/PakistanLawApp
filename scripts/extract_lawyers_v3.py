@@ -1,41 +1,55 @@
-"""
-Extract Lawyers V3 - Extract lawyer information from legal documents
-"""
+#!/usr/bin/env python3
+"""Lawyer extractor v3"""
+
+import requests
 import json
 import re
-import sys
+from bs4 import BeautifulSoup
 
-def extract_lawyers(text):
-    """Extract lawyer names from case text."""
-    patterns = [
-        r'(?:for\s+)?(?:the\s+)?(?:appellant[s]?|petitioner[s]?|plaintiff[s]?)[:\s]+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)',
-        r'(?:for\s+)?(?:the\s+)?(?:respondent[s]?|defendant[s]?)[:\s]+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)',
-        r'(?:counsel|advocate)[:\s]+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)',
-    ]
-    lawyers = []
-    for pattern in patterns:
-        matches = re.findall(pattern, text)
-        lawyers.extend(matches)
-    return list(set(lawyers))
+def extract_lawyers_from_case(case_url):
+    """Extract lawyer names from case page"""
+    try:
+        response = requests.get(case_url, timeout=30)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        lawyers = {
+            'appellants': [],
+            'respondents': [],
+            'counsel': []
+        }
+        
+        # Extract appellants
+        for elem in soup.find_all(text=re.compile(r'Appellant[s]?\s*[:\-]')):
+            parent = elem.parent
+            if parent:
+                text = parent.text
+                names = re.findall(r'[A-Z][a-zA-Z\s]+(?: Advocate| Counsel)', text)
+                lawyers['appellants'].extend(names)
+        
+        # Extract respondents
+        for elem in soup.find_all(text=re.compile(r'Respondent[s]?\s*[:\-]')):
+            parent = elem.parent
+            if parent:
+                text = parent.text
+                names = re.findall(r'[A-Z][a-zA-Z\s]+(?: Advocate| Counsel)', text)
+                lawyers['respondents'].extend(names)
+        
+        # Extract counsel
+        for elem in soup.find_all(text=re.compile(r'Counsel[s]?\s*[:\-]')):
+            parent = elem.parent
+            if parent:
+                text = parent.text
+                names = re.findall(r'[A-Z][a-zA-Z\s]+(?: Advocate| Counsel)', text)
+                lawyers['counsel'].extend(names)
+        
+        return lawyers
+    except Exception as e:
+        return {'error': str(e)}
 
-def process_file(input_file, output_file):
-    with open(input_file, 'r') as f:
-        data = json.load(f)
-    results = []
-    for item in data:
-        text = item.get('content', '') or item.get('text', '') or item.get('body', '')
-        lawyers = extract_lawyers(text)
-        results.append({
-            'id': item.get('id'),
-            'title': item.get('title'),
-            'lawyers': lawyers,
-        })
-    with open(output_file, 'w') as f:
-        json.dump(results, f, indent=2)
-    print(f"Extracted lawyers from {len(results)} items to {output_file}")
+def main():
+    url = "https://www.pakistanlawsite.com/case/sample"
+    lawyers = extract_lawyers_from_case(url)
+    print(json.dumps(lawyers, indent=2))
 
 if __name__ == '__main__':
-    if len(sys.argv) < 3:
-        print("Usage: python extract_lawyers_v3.py <input.json> <output.json>")
-        sys.exit(1)
-    process_file(sys.argv[1], sys.argv[2])
+    main()
