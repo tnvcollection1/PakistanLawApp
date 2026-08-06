@@ -1,7 +1,9 @@
+const { CracoPlugin } = require('craco');
+
 module.exports = {
-  style: {
-    postcss: {
-      plugins: [require('tailwindcss'), require('autoprefixer')],
+  plugins: [
+    {
+      plugin: CracoPlugin,
     },
-  },
+  ],
 };

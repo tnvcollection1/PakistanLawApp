@@ -3,25 +3,38 @@ import React, { useState } from 'react';
 export default function AskAIPanel() {
   const [question, setQuestion] = useState('');
   const [answer, setAnswer] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const askAI = async () => {
-    setAnswer('AI is thinking...');
-    // Placeholder for AI integration
-    setTimeout(() => setAnswer('This is a placeholder response. AI integration will be added soon.'), 1000);
+  const handleAsk = async () => {
+    setLoading(true);
+    // Simulate AI call
+    setTimeout(() => {
+      setAnswer('This is a simulated AI response to your legal question.');
+      setLoading(false);
+    }, 2000);
   };
 
   return (
-    <div className="bg-white rounded-lg border p-4">
+    <div className="p-4 border rounded-lg bg-card">
       <h3 className="font-semibold mb-2">Ask AI</h3>
-      <input
-        type="text"
+      <textarea
+        className="w-full p-2 border rounded mb-2"
         value={question}
         onChange={(e) => setQuestion(e.target.value)}
-        placeholder="Ask a question about this case..."
-        className="w-full border rounded px-3 py-2 mb-2"
+        placeholder="Ask a legal question..."
       />
-      <button onClick={askAI} className="bg-blue-600 text-white px-4 py-2 rounded">Ask</button>
-      {answer && <p className="mt-2 text-sm text-gray-600">{answer}</p>}
+      <button
+        onClick={handleAsk}
+        disabled={loading}
+        className="px-4 py-2 bg-primary text-primary-foreground rounded"
+      >
+        {loading ? 'Thinking...' : 'Ask'}
+      </button>
+      {answer && (
+        <div className="mt-4 p-3 bg-muted rounded">
+          <p>{answer}</p>
+        </div>
+      )}
     </div>
   );
 }
