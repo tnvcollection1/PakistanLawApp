@@ -1,3 +1,1 @@
-#!/bin/bash
-# Auto ingest script
-node /app/scripts/ingest.js
+#!/bin/bash cd /app && source venv/bin/activate && python3 auto_ingest.py
