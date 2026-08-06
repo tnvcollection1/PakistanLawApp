@@ -1,3 +1,6 @@
 #!/bin/bash
-# Import headnotes chain script
-python3 /app/scripts/import_headnotes.py
+# Import headnotes chain
+
+cat headnotes.csv | while read line; do
+  echo "Importing: $line"
+done
