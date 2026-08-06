@@ -1,43 +1,73 @@
-"""
-EastLaw Scraper Final - Final version of EastLaw scraper
-"""
-import json
+#!/usr/bin/env python3
+"""Final version of Eastlaw scraper"""
+
 import requests
+import json
+import time
 from bs4 import BeautifulSoup
 
-BASE_URL = "https://www.eastlaw.pk"
+BASE_URL = "https://eastlaw.pk"
 
-class EastLawScraperFinal:
-    def __init__(self):
-        self.session = requests.Session()
-        self.session.headers.update({
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-        })
+def get_session():
+    """Create a requests session"""
+    session = requests.Session()
+    session.headers.update({
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+    })
+    return session
 
-    def search_cases(self, query, page=1):
-        url = f"{BASE_URL}/search"
-        params = {'q': query, 'page': page}
-        resp = self.session.get(url, params=params)
-        soup = BeautifulSoup(resp.text, 'html.parser')
+def scrape_eastlaw_cases(page=1):
+    """Scrape cases from Eastlaw"""
+    session = get_session()
+    url = f"{BASE_URL}/cases?page={page}"
+    
+    try:
+        response = session.get(url, timeout=30)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
         cases = []
-        for item in soup.select('.search-result'):
-            cases.append({
-                'title': item.select_one('.title').get_text(strip=True) if item.select_one('.title') else None,
-                'citation': item.select_one('.citation').get_text(strip=True) if item.select_one('.citation') else None,
-                'url': item.select_one('a')['href'] if item.select_one('a') else None,
-            })
+        for item in soup.find_all('div', class_='case-item'):
+            case = {
+                'title': item.find('h3').text.strip() if item.find('h3') else '',
+                'citation': item.find('span', class_='citation').text.strip() if item.find('span', class_='citation') else '',
+                'date': item.find('span', class_='date').text.strip() if item.find('span', class_='date') else '',
+                'court': item.find('span', class_='court').text.strip() if item.find('span', class_='court') else '',
+                'url': item.find('a')['href'] if item.find('a') else ''
+            }
+            cases.append(case)
+        
         return cases
+    except Exception as e:
+        print(f"Error scraping page {page}: {e}")
+        return []
 
-    def scrape_case_detail(self, url):
-        resp = self.session.get(url)
-        soup = BeautifulSoup(resp.text, 'html.parser')
+def scrape_case_detail(url):
+    """Scrape case detail"""
+    try:
+        response = requests.get(url, timeout=30)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
         return {
-            'title': soup.select_one('h1').get_text(strip=True) if soup.select_one('h1') else None,
-            'content': soup.select_one('.case-content').get_text(strip=True) if soup.select_one('.case-content') else None,
-            'citations': [c.get_text(strip=True) for c in soup.select('.citation')],
+            'title': soup.find('h1').text.strip() if soup.find('h1') else '',
+            'content': soup.find('div', class_='case-content').text.strip() if soup.find('div', class_='case-content') else '',
+            'headnotes': soup.find('div', class_='headnotes').text.strip() if soup.find('div', class_='headnotes') else '',
+            'judges': soup.find('div', class_='judges').text.strip() if soup.find('div', class_='judges') else ''
         }
+    except Exception as e:
+        print(f"Error scraping detail {url}: {e}")
+        return {}
+
+def main():
+    all_cases = []
+    for page in range(1, 3):
+        print(f"Scraping page {page}...")
+        cases = scrape_eastlaw_cases(page)
+        all_cases.extend(cases)
+        time.sleep(1)
+    
+    with open('eastlaw_cases.json', 'w') as f:
+        json.dump(all_cases, f, indent=2)
+    print(f"Scraped {len(all_cases)} cases")
 
 if __name__ == '__main__':
-    scraper = EastLawScraperFinal()
-    cases = scraper.search_cases("property", 1)
-    print(json.dumps(cases, indent=2))
+    main()

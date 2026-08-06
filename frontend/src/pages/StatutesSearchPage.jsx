@@ -1,44 +1,75 @@
-import React, { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Search } from "lucide-react";
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-export default function StatutesSearchPage() {
-  const [query, setQuery] = useState("");
+const StatutesSearchPage = () => {
+  const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [filters, setFilters] = useState({
+    year: '',
+    category: '',
+    court: ''
+  });
+  const navigate = useNavigate();
 
-  const handleSearch = () => {
-    // Mock results
-    setResults([
-      { id: 1, title: "Pakistan Penal Code", section: "Section 302" },
-      { id: 2, title: "Constitution of Pakistan", section: "Article 25" },
-      { id: 3, title: "Code of Criminal Procedure", section: "Section 497" },
-    ]);
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({ q: query, ...filters });
+      const response = await fetch(`/api/statutes/search?${params}`);
+      const data = await response.json();
+      setResults(data.statutes || []);
+    } catch (error) {
+      console.error('Search error:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">Statute Search</h1>
-      <div className="flex space-x-2 mb-6">
-        <Input
-          placeholder="Search statutes..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="max-w-md"
-        />
-        <Button onClick={handleSearch}>
-          <Search className="mr-2 h-4 w-4" />
-          Search
-        </Button>
-      </div>
+    <div className="max-w-6xl mx-auto px-4 py-8">
+      <h1 className="text-2xl font-bold mb-6">Statute Search</h1>
+      
+      <form onSubmit={handleSearch} className="mb-6">
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search statutes..."
+            className="flex-1 border rounded-md px-4 py-2"
+          />
+          <button
+            type="submit"
+            disabled={loading}
+            className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
+          >
+            {loading ? 'Searching...' : 'Search'}
+          </button>
+        </div>
+      </form>
+
       <div className="space-y-4">
-        {results.map((result) => (
-          <div key={result.id} className="p-4 rounded-lg border">
-            <h2 className="text-lg font-semibold">{result.title}</h2>
-            <p className="text-sm text-muted-foreground">{result.section}</p>
+        {results.length === 0 && !loading && (
+          <p className="text-gray-500">No results found</p>
+        )}
+        {results.map((statute) => (
+          <div key={statute.id} className="border rounded-lg p-4 hover:shadow-md transition">
+            <h3 className="text-lg font-semibold">
+              <a href={`/statute/${statute.id}`} className="text-blue-600 hover:underline">
+                {statute.title}
+              </a>
+            </h3>
+            <p className="text-sm text-gray-500 mt-1">
+              Year: {statute.year} | Category: {statute.category}
+            </p>
+            <p className="text-gray-700 mt-2 line-clamp-3">{statute.description}</p>
           </div>
         ))}
       </div>
     </div>
   );
-}
+};
+
+export default StatutesSearchPage;

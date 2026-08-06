@@ -1,48 +1,40 @@
-import React from "react";
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { Home, Search, BookOpen, Settings, User } from "lucide-react";
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
 
-export default function DashboardSidebar() {
+const DashboardSidebar = () => {
+  const location = useLocation();
+
+  const menuItems = [
+    { path: '/dashboard', label: 'Overview', icon: '📊' },
+    { path: '/dashboard/cases', label: 'My Cases', icon: '📁' },
+    { path: '/dashboard/notes', label: 'Notes', icon: '📝' },
+    { path: '/dashboard/alerts', label: 'Alerts', icon: '🔔' },
+    { path: '/dashboard/settings', label: 'Settings', icon: '⚙️' },
+  ];
+
   return (
-    <div className="w-64 border-r bg-background h-screen p-4 flex flex-col">
-      <div className="mb-6">
-        <h2 className="text-lg font-bold">Dashboard</h2>
+    <aside className="w-64 bg-gray-900 text-white min-h-screen p-4">
+      <div className="mb-8">
+        <h1 className="text-xl font-bold">PLS Dashboard</h1>
       </div>
-      <nav className="space-y-2 flex-1">
-        <Link to="/dashboard">
-          <Button variant="ghost" className="w-full justify-start">
-            <Home className="mr-2 h-4 w-4" />
-            Home
-          </Button>
-        </Link>
-        <Link to="/search">
-          <Button variant="ghost" className="w-full justify-start">
-            <Search className="mr-2 h-4 w-4" />
-            Search
-          </Button>
-        </Link>
-        <Link to="/statutes">
-          <Button variant="ghost" className="w-full justify-start">
-            <BookOpen className="mr-2 h-4 w-4" />
-            Statutes
-          </Button>
-        </Link>
-        <Separator className="my-2" />
-        <Link to="/profile">
-          <Button variant="ghost" className="w-full justify-start">
-            <User className="mr-2 h-4 w-4" />
-            Profile
-          </Button>
-        </Link>
-        <Link to="/settings">
-          <Button variant="ghost" className="w-full justify-start">
-            <Settings className="mr-2 h-4 w-4" />
-            Settings
-          </Button>
-        </Link>
+      <nav className="space-y-2">
+        {menuItems.map((item) => (
+          <Link
+            key={item.path}
+            to={item.path}
+            className={`flex items-center px-4 py-2 rounded-md transition ${
+              location.pathname === item.path
+                ? 'bg-blue-600 text-white'
+                : 'text-gray-300 hover:bg-gray-800'
+            }`}
+          >
+            <span className="mr-3">{item.icon}</span>
+            {item.label}
+          </Link>
+        ))}
       </nav>
-    </div>
+    </aside>
   );
-}
+};
+
+export default DashboardSidebar;

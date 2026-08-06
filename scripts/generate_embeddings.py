@@ -1,31 +1,69 @@
-"""
-Generate Embeddings - Script to generate embeddings for legal documents
-"""
+#!/usr/bin/env python3
+"""Generate embeddings for legal documents"""
+
 import json
 import os
-import numpy as np
+from sentence_transformers import SentenceTransformer
 
-# This is a placeholder for actual embedding generation
-# In production, this would use an embedding model like OpenAI's text-embedding-ada-002
+def load_model(model_name='all-MiniLM-L6-v2'):
+    """Load sentence transformer model"""
+    return SentenceTransformer(model_name)
 
-def generate_embedding(text, dim=384):
-    """Generate a simple random embedding (placeholder)."""
-    np.random.seed(hash(text) % 2**32)
-    return np.random.randn(dim).tolist()
+def generate_embeddings(texts, model=None):
+    """Generate embeddings for a list of texts"""
+    if model is None:
+        model = load_model()
+    
+    embeddings = model.encode(texts, show_progress_bar=True)
+    return embeddings
 
-def process_documents(input_file, output_file):
-    with open(input_file, 'r') as f:
-        documents = json.load(f)
-    for doc in documents:
-        text = doc.get('content', '') or doc.get('text', '')
-        doc['embedding'] = generate_embedding(text)
+def process_cases(cases_file='all_cases.json', output_file='case_embeddings.json'):
+    """Generate embeddings for all cases"""
+    with open(cases_file, 'r') as f:
+        cases = json.load(f)
+    
+    texts = []
+    for case in cases:
+        text = f"{case.get('title', '')} {case.get('content', '')}"
+        texts.append(text)
+    
+    model = load_model()
+    embeddings = generate_embeddings(texts, model)
+    
+    # Save embeddings
+    embedding_data = []
+    for i, case in enumerate(cases):
+        embedding_data.append({
+            'case_id': case.get('id', i),
+            'embedding': embeddings[i].tolist()
+        })
+    
     with open(output_file, 'w') as f:
-        json.dump(documents, f, indent=2)
-    print(f"Generated embeddings for {len(documents)} documents")
+        json.dump(embedding_data, f, indent=2)
+    
+    print(f"Generated embeddings for {len(cases)} cases")
+
+def search_similar(query, embeddings_file='case_embeddings.json', top_k=5):
+    """Search for similar cases using embeddings"""
+    import numpy as np
+    
+    with open(embeddings_file, 'r') as f:
+        data = json.load(f)
+    
+    model = load_model()
+    query_embedding = model.encode([query])[0]
+    
+    similarities = []
+    for item in data:
+        embedding = np.array(item['embedding'])
+        similarity = np.dot(query_embedding, embedding) / (np.linalg.norm(query_embedding) * np.linalg.norm(embedding))
+        similarities.append((item['case_id'], similarity))
+    
+    similarities.sort(key=lambda x: x[1], reverse=True)
+    return similarities[:top_k]
+
+def main():
+    process_cases()
 
 if __name__ == '__main__':
-    import sys
-    if len(sys.argv) < 3:
-        print("Usage: python generate_embeddings.py <input.json> <output.json>")
-        sys.exit(1)
-    process_documents(sys.argv[1], sys.argv[2])
+    main()

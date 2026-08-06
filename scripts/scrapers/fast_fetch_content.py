@@ -1,30 +1,40 @@
-"""
-Fast Fetch Content - Fast content fetching with caching
-"""
+#!/usr/bin/env python3
+"""Fast content fetcher using async requests"""
+
+import asyncio
+import aiohttp
 import json
-import requests
-from functools import lru_cache
+from bs4 import BeautifulSoup
 
-BASE_URL = "https://www.pls-beta.com"
+async def fetch_url(session, url):
+    """Fetch URL asynchronously"""
+    try:
+        async with session.get(url, timeout=aiohttp.ClientTimeout(total=30)) as response:
+            text = await response.text()
+            soup = BeautifulSoup(text, 'html.parser')
+            return {
+                'url': url,
+                'title': soup.find('title').text.strip() if soup.find('title') else '',
+                'content': soup.find('body').text.strip() if soup.find('body') else ''
+            }
+    except Exception as e:
+        return {'url': url, 'error': str(e)}
 
-class FastContentFetcher:
-    def __init__(self):
-        self.session = requests.Session()
+async def fetch_all(urls):
+    """Fetch all URLs concurrently"""
+    async with aiohttp.ClientSession() as session:
+        tasks = [fetch_url(session, url) for url in urls]
+        return await asyncio.gather(*tasks)
 
-    @lru_cache(maxsize=1000)
-    def fetch(self, url):
-        resp = self.session.get(url, timeout=30)
-        return resp.text if resp.status_code == 200 else None
-
-    def fetch_case(self, case_id):
-        url = f"{BASE_URL}/cases/{case_id}"
-        return self.fetch(url)
-
-    def fetch_statute(self, statute_id):
-        url = f"{BASE_URL}/statutes/{statute_id}"
-        return self.fetch(url)
+def main():
+    urls = [
+        "https://www.pakistanlawsite.com/cases/1",
+        "https://www.pakistanlawsite.com/statutes/1"
+    ]
+    results = asyncio.run(fetch_all(urls))
+    with open('fast_fetch_results.json', 'w') as f:
+        json.dump(results, f, indent=2)
+    print(f"Fetched {len(results)} URLs")
 
 if __name__ == '__main__':
-    fetcher = FastContentFetcher()
-    content = fetcher.fetch_case('1')
-    print(f"Fetched {len(content) if content else 0} chars")
+    main()

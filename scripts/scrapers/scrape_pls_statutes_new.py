@@ -1,51 +1,68 @@
-"""
-Scrape PLS Statutes New - New statute scraper for PLS
-"""
-import json
+#!/usr/bin/env python3
+"""New scraper for PLS statutes with improved parsing"""
+
 import requests
+import json
+import time
 from bs4 import BeautifulSoup
 
-BASE_URL = "https://www.pls-beta.com"
-
-class NewPLSStatuteScraper:
-    def __init__(self):
-        self.session = requests.Session()
-        self.session.headers.update({
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-        })
-
-    def scrape_statute_categories(self):
-        url = f"{BASE_URL}/statute-categories"
-        resp = self.session.get(url)
-        soup = BeautifulSoup(resp.text, 'html.parser')
-        categories = []
-        for item in soup.select('.category-item'):
-            categories.append({
-                'name': item.select_one('.category-name').get_text(strip=True) if item.select_one('.category-name') else None,
-                'url': item.select_one('a')['href'] if item.select_one('a') else None,
-            })
-        return categories
-
-    def scrape_statute_list(self, category_url):
-        resp = self.session.get(category_url)
-        soup = BeautifulSoup(resp.text, 'html.parser')
+def scrape_statute_list(page=1):
+    """Scrape statute list from PLS"""
+    url = f"https://www.pakistanlawsite.com/statutes?page={page}"
+    try:
+        response = requests.get(url, timeout=30)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
         statutes = []
-        for item in soup.select('.statute-item'):
-            statutes.append({
-                'title': item.select_one('.statute-title').get_text(strip=True) if item.select_one('.statute-title') else None,
-                'url': item.select_one('a')['href'] if item.select_one('a') else None,
-            })
+        for item in soup.find_all('div', class_='statute-item'):
+            statute = {
+                'title': item.find('h3').text.strip() if item.find('h3') else '',
+                'year': item.find('span', class_='year').text.strip() if item.find('span', class_='year') else '',
+                'category': item.find('span', class_='category').text.strip() if item.find('span', class_='category') else '',
+                'url': item.find('a')['href'] if item.find('a') else ''
+            }
+            statutes.append(statute)
+        
         return statutes
+    except Exception as e:
+        print(f"Error scraping page {page}: {e}")
+        return []
 
-    def scrape_statute_detail(self, url):
-        resp = self.session.get(url)
-        soup = BeautifulSoup(resp.text, 'html.parser')
+def scrape_statute_detail(url):
+    """Scrape detailed statute information"""
+    try:
+        response = requests.get(url, timeout=30)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
         return {
-            'title': soup.select_one('h1').get_text(strip=True) if soup.select_one('h1') else None,
-            'content': soup.select_one('.statute-content').get_text(strip=True) if soup.select_one('.statute-content') else None,
+            'title': soup.find('h1').text.strip() if soup.find('h1') else '',
+            'preamble': soup.find('div', class_='preamble').text.strip() if soup.find('div', class_='preamble') else '',
+            'sections': [s.text.strip() for s in soup.find_all('div', class_='section')]
         }
+    except Exception as e:
+        print(f"Error scraping {url}: {e}")
+        return {}
+
+def main():
+    all_statutes = []
+    for page in range(1, 5):
+        print(f"Scraping statutes page {page}...")
+        statutes = scrape_statute_list(page)
+        all_statutes.extend(statutes)
+        time.sleep(1)
+    
+    # Get details for each statute
+    detailed = []
+    for statute in all_statutes:
+        if statute['url']:
+            detail = scrape_statute_detail(statute['url'])
+            statute['detail'] = detail
+            detailed.append(statute)
+            time.sleep(0.5)
+    
+    with open('pls_statutes_new.json', 'w') as f:
+        json.dump(detailed, f, indent=2)
+    print(f"Scraped {len(detailed)} statutes")
 
 if __name__ == '__main__':
-    scraper = NewPLSStatuteScraper()
-    categories = scraper.scrape_statute_categories()
-    print(json.dumps(categories, indent=2))
+    main()
