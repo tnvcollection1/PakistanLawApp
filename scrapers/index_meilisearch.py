@@ -1,25 +1,55 @@
-"""
-Index Meilisearch - Index documents into Meilisearch
-"""
+#!/usr/bin/env python3
+"""Index cases in Meilisearch"""
+
+import meilisearch
 import json
 import os
-from meilisearch import Client
 
-MEILI_URL = os.environ.get('MEILI_URL', 'http://localhost:7700')
-MEILI_KEY = os.environ.get('MEILI_KEY', 'masterKey')
+MEILI_HOST = os.getenv('MEILI_HOST', 'http://localhost:7700')
+MEILI_KEY = os.getenv('MEILI_KEY', '')
 
-def index_documents(documents, index_name='cases'):
-    client = Client(MEILI_URL, MEILI_KEY)
-    index = client.index(index_name)
-    response = index.add_documents(documents)
-    print(f"Indexed {len(documents)} documents: {response}")
-    return response
+def get_meili_client():
+    """Get Meilisearch client"""
+    return meilisearch.Client(MEILI_HOST, MEILI_KEY)
+
+def index_cases(cases_file='all_cases.json'):
+    """Index cases from JSON file"""
+    with open(cases_file, 'r') as f:
+        cases = json.load(f)
+    
+    client = get_meili_client()
+    index = client.index('cases')
+    
+    # Configure index settings
+    index.update_settings({
+        'searchableAttributes': ['title', 'content', 'citation', 'court'],
+        'filterableAttributes': ['court', 'date', 'category'],
+        'sortableAttributes': ['date']
+    })
+    
+    # Add documents in batches
+    batch_size = 100
+    for i in range(0, len(cases), batch_size):
+        batch = cases[i:i + batch_size]
+        index.add_documents(batch)
+        print(f"Indexed batch {i//batch_size + 1}")
+    
+    print(f"Indexed {len(cases)} cases")
+
+def search_cases(query, filters=None):
+    """Search indexed cases"""
+    client = get_meili_client()
+    index = client.index('cases')
+    
+    search_params = {}
+    if filters:
+        search_params['filter'] = filters
+    
+    results = index.search(query, search_params)
+    return results
+
+def main():
+    index_cases()
 
 if __name__ == '__main__':
-    import sys
-    if len(sys.argv) < 2:
-        print("Usage: python index_meilisearch.py <documents.json>")
-        sys.exit(1)
-    with open(sys.argv[1], 'r') as f:
-        documents = json.load(f)
-    index_documents(documents)
+    main()

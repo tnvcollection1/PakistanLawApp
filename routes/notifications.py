@@ -1,24 +1,42 @@
-"""
-Notifications - Routes for notification management
-"""
+# Notifications Route
 from flask import Blueprint, jsonify, request
 from datetime import datetime
 
 notifications_bp = Blueprint('notifications', __name__)
 
-NOTIFICATIONS = [
-    {"id": 1, "title": "New case available", "message": "A new Supreme Court case has been added", "read": False, "created_at": "2024-01-01T00:00:00Z"},
-    {"id": 2, "title": "System update", "message": "New features have been added to the platform", "read": True, "created_at": "2024-01-02T00:00:00Z"},
-]
+# In-memory storage for demo
+notifications = []
 
-@notifications_bp.route('/api/notifications', methods=['GET'])
-def list_notifications():
-    return jsonify({"notifications": NOTIFICATIONS})
+@notifications_bp.route('/notifications', methods=['GET'])
+def get_notifications():
+    """Get all notifications for the current user"""
+    user_id = request.args.get('user_id')
+    if not user_id:
+        return jsonify({'error': 'user_id is required'}), 400
+    
+    user_notifications = [n for n in notifications if n['user_id'] == user_id]
+    return jsonify({'notifications': user_notifications})
 
-@notifications_bp.route('/api/notifications/<int:notification_id>/read', methods=['POST'])
+@notifications_bp.route('/notifications', methods=['POST'])
+def create_notification():
+    """Create a new notification"""
+    data = request.get_json()
+    notification = {
+        'id': len(notifications) + 1,
+        'user_id': data.get('user_id'),
+        'message': data.get('message'),
+        'type': data.get('type', 'info'),
+        'read': False,
+        'created_at': datetime.now().isoformat()
+    }
+    notifications.append(notification)
+    return jsonify(notification), 201
+
+@notifications_bp.route('/notifications/<int:notification_id>/read', methods=['PUT'])
 def mark_read(notification_id):
-    for n in NOTIFICATIONS:
+    """Mark a notification as read"""
+    for n in notifications:
         if n['id'] == notification_id:
             n['read'] = True
             return jsonify(n)
-    return jsonify({"error": "Not found"}), 404
+    return jsonify({'error': 'Notification not found'}), 404

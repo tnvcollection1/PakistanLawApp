@@ -1,46 +1,54 @@
-"""
-Cloud Scraper - Cloud-based scraper for distributed scraping
-"""
-import json
-import requests
-from bs4 import BeautifulSoup
-import concurrent.futures
+#!/usr/bin/env python3
+"""Cloud-based scraper for Pakistan Legal System"""
 
-BASE_URL = "https://www.pls-beta.com"
+import requests
+import json
+import boto3
+from botocore.exceptions import ClientError
+import time
 
 class CloudScraper:
-    def __init__(self, max_workers=20):
-        self.max_workers = max_workers
+    def __init__(self, base_url="https://www.pakistanlawsite.com"):
+        self.base_url = base_url
         self.session = requests.Session()
-
-    def fetch_case(self, case_id):
-        url = f"{BASE_URL}/cases/{case_id}"
-        resp = self.session.get(url)
-        if resp.status_code != 200:
+        self.session.headers.update({
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        })
+    
+    def fetch_page(self, endpoint, params=None):
+        """Fetch a page from the website"""
+        url = f"{self.base_url}/{endpoint}"
+        try:
+            response = self.session.get(url, params=params, timeout=30)
+            response.raise_for_status()
+            return response.text
+        except requests.RequestException as e:
+            print(f"Error fetching {url}: {e}")
             return None
-        soup = BeautifulSoup(resp.text, 'html.parser')
-        return {
-            'id': case_id,
-            'title': soup.select_one('h1').get_text(strip=True) if soup.select_one('h1') else None,
-            'content': soup.select_one('.content').get_text(strip=True) if soup.select_one('.content') else None,
-        }
+    
+    def upload_to_s3(self, data, bucket, key):
+        """Upload data to S3 bucket"""
+        try:
+            s3 = boto3.client('s3')
+            s3.put_object(
+                Bucket=bucket,
+                Key=key,
+                Body=json.dumps(data, indent=2)
+            )
+            print(f"Uploaded to s3://{bucket}/{key}")
+        except ClientError as e:
+            print(f"Error uploading to S3: {e}")
+    
+    def scrape_and_store(self, endpoint, bucket, key):
+        """Scrape data and store in cloud"""
+        html = self.fetch_page(endpoint)
+        if html:
+            data = {'html': html, 'endpoint': endpoint, 'timestamp': time.time()}
+            self.upload_to_s3(data, bucket, key)
 
-    def fetch_multiple(self, case_ids):
-        results = []
-        with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as executor:
-            future_to_id = {executor.submit(self.fetch_case, cid): cid for cid in case_ids}
-            for future in concurrent.futures.as_completed(future_to_id):
-                case_id = future_to_id[future]
-                try:
-                    result = future.result()
-                    if result:
-                        results.append(result)
-                except Exception as e:
-                    print(f"Error fetching case {case_id}: {e}")
-        return results
+def main():
+    scraper = CloudScraper()
+    scraper.scrape_and_store('cases', 'pakistan-law-data', 'cases/raw.json')
 
 if __name__ == '__main__':
-    scraper = CloudScraper()
-    results = scraper.fetch_multiple(range(1, 11))
-    print(f"Fetched {len(results)} cases")
-    print(json.dumps(results[:3], indent=2))
+    main()

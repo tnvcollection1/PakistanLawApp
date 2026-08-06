@@ -1,49 +1,59 @@
-import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-export default function SiteGate() {
-  const [email, setEmail] = useState("");
-  const [submitted, setSubmitted] = useState(false);
+const SiteGate = ({ onAccess }) => {
+  const [accessCode, setAccessCode] = useState('');
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (email.trim()) {
-      setSubmitted(true);
+    
+    // Simple access code validation
+    if (accessCode === 'PLS2024') {
+      localStorage.setItem('site_access', 'granted');
+      if (onAccess) {
+        onAccess();
+      }
+      navigate('/');
+    } else {
+      setError('Invalid access code. Please try again.');
     }
   };
 
-  if (submitted) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Thank You!</h1>
-          <p className="text-muted-foreground">You now have access to PakistanLaw.</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background">
-      <div className="w-full max-w-md p-6">
-        <h1 className="text-2xl font-bold mb-2 text-center">PakistanLaw</h1>
-        <p className="text-muted-foreground mb-6 text-center">
-          Enter your email to access the platform.
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+        <h1 className="text-2xl font-bold text-center mb-6">Pakistan Law Site</h1>
+        <p className="text-gray-600 text-center mb-6">
+          Please enter the access code to continue.
         </p>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Input
-            type="email"
-            placeholder="Email address"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <Button type="submit" className="w-full">
-            Get Access
-          </Button>
+        
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <input
+              type="password"
+              value={accessCode}
+              onChange={(e) => setAccessCode(e.target.value)}
+              placeholder="Enter access code"
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          
+          {error && (
+            <p className="text-red-500 text-sm mb-4">{error}</p>
+          )}
+          
+          <button
+            type="submit"
+            className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition"
+          >
+            Access Site
+          </button>
         </form>
       </div>
     </div>
   );
-}
+};
+
+export default SiteGate;

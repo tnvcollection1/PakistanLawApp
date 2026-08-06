@@ -1,41 +1,64 @@
-import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-export default function SearchSuggestions({ query, onSelect }) {
+const SearchSuggestions = ({ query, onSelect }) => {
   const [suggestions, setSuggestions] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    if (query.length < 2) {
+    if (!query || query.length < 2) {
       setSuggestions([]);
       return;
     }
-    // Mock suggestions for now
-    setSuggestions([
-      { id: 1, title: `Case about ${query}`, type: "case" },
-      { id: 2, title: `Statute ${query}`, type: "statute" },
-      { id: 3, title: `Article on ${query}`, type: "article" },
-    ]);
+
+    const fetchSuggestions = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(`/api/search/suggestions?q=${encodeURIComponent(query)}`);
+        const data = await response.json();
+        setSuggestions(data.suggestions || []);
+      } catch (error) {
+        console.error('Error fetching suggestions:', error);
+        setSuggestions([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const timeoutId = setTimeout(fetchSuggestions, 300);
+    return () => clearTimeout(timeoutId);
   }, [query]);
 
-  if (!query || suggestions.length === 0) return null;
+  const handleSelect = (suggestion) => {
+    if (onSelect) {
+      onSelect(suggestion);
+    } else {
+      navigate(`/search?q=${encodeURIComponent(suggestion)}`);
+    }
+  };
+
+  if (!query || query.length < 2) return null;
 
   return (
-    <div className="absolute top-full left-0 right-0 bg-background border rounded-md shadow-lg z-50 mt-1">
-      <ul className="py-2">
-        {suggestions.map((suggestion) => (
-          <li key={suggestion.id}>
-            <button
-              className="w-full text-left px-4 py-2 hover:bg-accent hover:text-accent-foreground"
-              onClick={() => onSelect(suggestion)}
-            >
-              <span className="font-medium">{suggestion.title}</span>
-              <span className="ml-2 text-xs text-muted-foreground capitalize">
-                {suggestion.type}
-              </span>
-            </button>
-          </li>
-        ))}
-      </ul>
+    <div className="absolute z-50 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1">
+      {loading && (
+        <div className="px-4 py-2 text-sm text-gray-500">Loading...</div>
+      )}
+      {suggestions.length === 0 && !loading && (
+        <div className="px-4 py-2 text-sm text-gray-500">No suggestions found</div>
+      )}
+      {suggestions.map((suggestion, index) => (
+        <button
+          key={index}
+          className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+          onClick={() => handleSelect(suggestion)}
+        >
+          {suggestion}
+        </button>
+      ))}
     </div>
   );
-}
+};
+
+export default SearchSuggestions;

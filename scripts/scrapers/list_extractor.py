@@ -1,29 +1,41 @@
-"""
-List Extractor - Extract case lists from PLS pages
-"""
-import json
+#!/usr/bin/env python3
+"""List extractor for case lists and other structured data"""
+
 import requests
 from bs4 import BeautifulSoup
+import json
 
-BASE_URL = "https://www.pls-beta.com"
-
-class ListExtractor:
-    def __init__(self):
-        self.session = requests.Session()
-
-    def extract_list(self, url, selector='.case-list-item'):
-        resp = self.session.get(url)
-        soup = BeautifulSoup(resp.text, 'html.parser')
+def extract_list_items(url, selector):
+    """Extract list items from a URL using CSS selector"""
+    try:
+        response = requests.get(url, timeout=30)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
         items = []
         for element in soup.select(selector):
             items.append({
-                'title': element.select_one('.title').get_text(strip=True) if element.select_one('.title') else None,
-                'url': element.select_one('a')['href'] if element.select_one('a') else None,
-                'date': element.select_one('.date').get_text(strip=True) if element.select_one('.date') else None,
+                'text': element.get_text(strip=True),
+                'href': element.get('href', '')
             })
+        
         return items
+    except Exception as e:
+        print(f"Error extracting from {url}: {e}")
+        return []
+
+def save_items(items, filename):
+    """Save extracted items to JSON file"""
+    with open(filename, 'w') as f:
+        json.dump(items, f, indent=2)
+    print(f"Saved {len(items)} items to {filename}")
+
+def main():
+    """Main extraction function"""
+    # Example: Extract case list
+    url = "https://www.pakistanlawsite.com/cases"
+    items = extract_list_items(url, '.case-list-item')
+    save_items(items, 'extracted_cases.json')
 
 if __name__ == '__main__':
-    extractor = ListExtractor()
-    items = extractor.extract_list(f"{BASE_URL}/cases")
-    print(json.dumps(items, indent=2))
+    main()

@@ -1,34 +1,58 @@
-"""
-Case List Scraper - Scraper for case lists from PLS
-"""
-import json
+#!/usr/bin/env python3
+"""Case list scraper for Pakistan Legal System"""
+
 import requests
+import json
+import time
 from bs4 import BeautifulSoup
 
-BASE_URL = "https://www.pls-beta.com"
+BASE_URL = "https://www.pakistanlawsite.com"
 
-class CaseListScraper:
-    def __init__(self):
-        self.session = requests.Session()
-        self.session.headers.update({
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-        })
+def fetch_case_list(page=1):
+    """Fetch case list from the website"""
+    url = f"{BASE_URL}/cases?page={page}"
+    try:
+        response = requests.get(url, timeout=30)
+        response.raise_for_status()
+        return response.text
+    except requests.RequestException as e:
+        print(f"Error fetching page {page}: {e}")
+        return None
 
-    def scrape_case_list(self, page=1):
-        url = f"{BASE_URL}/cases?page={page}"
-        resp = self.session.get(url)
-        soup = BeautifulSoup(resp.text, 'html.parser')
-        cases = []
-        for item in soup.select('.case-list-item'):
-            cases.append({
-                'title': item.select_one('.case-title').get_text(strip=True) if item.select_one('.case-title') else None,
-                'citation': item.select_one('.case-citation').get_text(strip=True) if item.select_one('.case-citation') else None,
-                'url': item.select_one('a')['href'] if item.select_one('a') else None,
-                'date': item.select_one('.case-date').get_text(strip=True) if item.select_one('.case-date') else None,
-            })
-        return cases
+def parse_case_list(html):
+    """Parse case list HTML"""
+    if not html:
+        return []
+    
+    soup = BeautifulSoup(html, 'html.parser')
+    cases = []
+    
+    # Extract case entries
+    for item in soup.find_all('div', class_='case-item'):
+        case = {
+            'title': item.find('h3').text.strip() if item.find('h3') else '',
+            'citation': item.find('span', class_='citation').text.strip() if item.find('span', class_='citation') else '',
+            'date': item.find('span', class_='date').text.strip() if item.find('span', class_='date') else '',
+            'court': item.find('span', class_='court').text.strip() if item.find('span', class_='court') else ''
+        }
+        cases.append(case)
+    
+    return cases
+
+def main():
+    """Main scraper function"""
+    all_cases = []
+    for page in range(1, 11):
+        print(f"Fetching page {page}...")
+        html = fetch_case_list(page)
+        cases = parse_case_list(html)
+        all_cases.extend(cases)
+        time.sleep(1)
+    
+    with open('case_list.json', 'w') as f:
+        json.dump(all_cases, f, indent=2)
+    
+    print(f"Scraped {len(all_cases)} cases")
 
 if __name__ == '__main__':
-    scraper = CaseListScraper()
-    cases = scraper.scrape_case_list(1)
-    print(json.dumps(cases, indent=2))
+    main()

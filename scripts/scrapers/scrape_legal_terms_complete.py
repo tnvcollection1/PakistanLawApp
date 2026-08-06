@@ -1,30 +1,39 @@
-"""
-Scrape Legal Terms Complete - Comprehensive legal terms scraper
-"""
-import json
+#!/usr/bin/env python3
+"""Complete scraper for legal terms and definitions"""
+
 import requests
 from bs4 import BeautifulSoup
+import json
 
-BASE_URL = "https://www.pls-beta.com"
+def scrape_legal_terms():
+    """Scrape legal terms from various sources"""
+    terms = {}
+    
+    # Pakistan Law Site
+    url = "https://www.pakistanlawsite.com/legal-terms"
+    try:
+        response = requests.get(url, timeout=30)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        for item in soup.find_all('div', class_='term-item'):
+            term = item.find('dt')
+            definition = item.find('dd')
+            if term and definition:
+                terms[term.text.strip()] = definition.text.strip()
+    except Exception as e:
+        print(f"Error scraping legal terms: {e}")
+    
+    return terms
 
-class LegalTermsScraper:
-    def __init__(self):
-        self.session = requests.Session()
+def save_terms(terms, filename='legal_terms.json'):
+    """Save terms to JSON file"""
+    with open(filename, 'w') as f:
+        json.dump(terms, f, indent=2)
+    print(f"Saved {len(terms)} legal terms")
 
-    def scrape_terms(self, page=1):
-        url = f"{BASE_URL}/legal-terms?page={page}"
-        resp = self.session.get(url)
-        soup = BeautifulSoup(resp.text, 'html.parser')
-        terms = []
-        for item in soup.select('.term-item'):
-            terms.append({
-                'term': item.select_one('.term-name').get_text(strip=True) if item.select_one('.term-name') else None,
-                'definition': item.select_one('.term-definition').get_text(strip=True) if item.select_one('.term-definition') else None,
-                'url': item.select_one('a')['href'] if item.select_one('a') else None,
-            })
-        return terms
+def main():
+    terms = scrape_legal_terms()
+    save_terms(terms)
 
 if __name__ == '__main__':
-    scraper = LegalTermsScraper()
-    terms = scraper.scrape_terms(1)
-    print(json.dumps(terms, indent=2))
+    main()
