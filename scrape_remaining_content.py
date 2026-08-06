@@ -1,41 +1,140 @@
-import requests, time, json, os
+#!/usr/bin/env python3
+"""
+scrape_remaining_content.py
+Scrapes remaining content types from Pakistan Law Site.
+"""
+
+import os, sys, json, re, time, logging, requests
 from bs4 import BeautifulSoup
-from urllib.parse import urljoin
+from datetime import datetime
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 BASE_URL = "https://www.pakistanlawsite.com"
+OUTPUT_DIR = "/tmp/pls_remaining"
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
 }
 
-def scrape_remaining(session, known_file='data/pls_main.json', out='data/remaining.json'):
-    os.makedirs('data', exist_ok=True)
-    known = []
-    if os.path.exists(known_file):
-        with open(known_file, 'r') as f:
-            known = json.load(f)
-    known_titles = set(k['title'] for k in known)
-    results = []
-    url = f"{BASE_URL}/cases"
-    while url:
-        r = session.get(url, headers=HEADERS)
-        soup = BeautifulSoup(r.text, 'html.parser')
-        for row in soup.select('table tbody tr'):
-            cols = row.find_all('td')
-            if len(cols) >= 3:
-                title = cols[0].get_text(strip=True)
-                if title not in known_titles:
-                    results.append({
-                        'title': title,
-                        'citation': cols[1].get_text(strip=True),
-                        'date': cols[2].get_text(strip=True),
-                    })
-        next_link = soup.select_one('a[rel="next"]')
-        url = urljoin(BASE_URL, next_link['href']) if next_link else None
-        time.sleep(1)
-    with open(out, 'w') as f:
-        json.dump(results, f, indent=2)
-    print(f"[+] Saved {len(results)} remaining records to {out}")
 
-if __name__ == '__main__':
-    s = requests.Session()
-    scrape_remaining(s)
+def fetch(url, retries=3):
+    for attempt in range(retries):
+        try:
+            r = requests.get(url, headers=HEADERS, timeout=30)
+            if r.status_code == 200:
+                return r.text
+        except Exception as e:
+            logger.warning(f"Fetch error: {e}")
+        time.sleep(2 ** attempt)
+    return None
+
+
+def scrape_dictionary():
+    logger.info("Scraping dictionary...")
+    html = fetch(f"{BASE_URL}/Login/DictionaryPage")
+    if not html:
+        return []
+    
+    soup = BeautifulSoup(html, 'html.parser')
+    entries = []
+    
+    for elem in soup.find_all(['dt', 'dd']):
+        text = elem.get_text(strip=True)
+        if text:
+            entries.append({
+                'term': text[:500],
+                'source': 'pls_dictionary',
+                'scraped_at': datetime.utcnow().isoformat()
+            })
+    
+    logger.info(f"  Found {len(entries)} dictionary entries")
+    return entries
+
+
+def scrape_articles():
+    logger.info("Scraping articles...")
+    html = fetch(f"{BASE_URL}/Login/ArticlePage")
+    if not html:
+        return []
+    
+    soup = BeautifulSoup(html, 'html.parser')
+    articles = []
+    
+    for link in soup.find_all('a', href=True):
+        href = link.get('href', '')
+        text = link.get_text(strip=True)
+        if 'ArticleDetail' in href or 'fileID' in href:
+            match = re.search(r'fileID=(\d+)', href)
+            file_id = match.group(1) if match else None
+            articles.append({
+                'title': text[:500],
+                'file_id': file_id,
+                'url': href,
+                'source': 'pls_articles',
+                'scraped_at': datetime.utcnow().isoformat()
+            })
+    
+    logger.info(f"  Found {len(articles)} articles")
+    return articles
+
+
+def scrape_topics():
+    logger.info("Scraping topics...")
+    html = fetch(f"{BASE_URL}/Login/TopicPage")
+    if not html:
+        return []
+    
+    soup = BeautifulSoup(html, 'html.parser')
+    topics = []
+    
+    for elem in soup.find_all(attrs={'topicid': True}):
+        topic_id = elem.get('topicid')
+        text = elem.get_text(strip=True)
+        topics.append({
+            'topic_id': topic_id,
+            'name': text[:500],
+            'source': 'pls_topics',
+            'scraped_at': datetime.utcnow().isoformat()
+        })
+    
+    logger.info(f"  Found {len(topics)} topics")
+    return topics
+
+
+def save_data(data, filename):
+    filepath = os.path.join(OUTPUT_DIR, filename)
+    with open(filepath, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+    logger.info(f"  Saved to {filepath}")
+
+
+def main():
+    logger.info("=" * 50)
+    logger.info("Scraping Remaining Content")
+    logger.info("=" * 50)
+    
+    dictionary = scrape_dictionary()
+    if dictionary:
+        save_data(dictionary, f"dictionary_{datetime.now().strftime('%Y%m%d')}.json")
+    
+    articles = scrape_articles()
+    if articles:
+        save_data(articles, f"articles_{datetime.now().strftime('%Y%m%d')}.json")
+    
+    topics = scrape_topics()
+    if topics:
+        save_data(topics, f"topics_{datetime.now().strftime('%Y%m%d')}.json")
+    
+    logger.info("=" * 50)
+    logger.info("Complete")
+    logger.info(f"  Dictionary: {len(dictionary)}")
+    logger.info(f"  Articles: {len(articles)}")
+    logger.info(f"  Topics: {len(topics)}")
+    logger.info("=" * 50)
+
+
+if __name__ == "__main__":
+    main()
