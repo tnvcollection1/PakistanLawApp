@@ -1,52 +1,43 @@
-import requests, time, json, os, sys
+#!/usr/bin/env python3
+"""Scraper for PLS Beta site."""
+
+import requests
 from bs4 import BeautifulSoup
-from urllib.parse import urljoin
+import json
+import sys
 
-BASE_URL = "https://www.pakistanlawsite.com"
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-}
+BASE_URL = "https://beta.pakistanlawsite.com"
 
-def login(session):
-    r = session.get(f"{BASE_URL}/login", headers=HEADERS)
-    soup = BeautifulSoup(r.text, 'html.parser')
-    token = soup.find('input', {'name': '_token'})
-    if not token:
-        return False
-    data = {
-        '_token': token['value'],
-        'email': os.getenv('PLS_EMAIL'),
-        'password': os.getenv('PLS_PASSWORD'),
-    }
-    r = session.post(f"{BASE_URL}/login", data=data, headers=HEADERS)
-    return r.status_code == 200 or 'dashboard' in r.url
 
-def scrape_plsbeta(session, out='data/plsbeta.json'):
-    os.makedirs('data', exist_ok=True)
-    results = []
-    url = f"{BASE_URL}/beta/cases"
-    while url:
-        r = session.get(url, headers=HEADERS)
-        soup = BeautifulSoup(r.text, 'html.parser')
-        for row in soup.select('table tbody tr'):
-            cols = row.find_all('td')
-            if len(cols) >= 3:
-                results.append({
-                    'title': cols[0].get_text(strip=True),
-                    'citation': cols[1].get_text(strip=True),
-                    'date': cols[2].get_text(strip=True),
-                })
-        next_link = soup.select_one('a[rel="next"]')
-        url = urljoin(BASE_URL, next_link['href']) if next_link else None
-        time.sleep(1)
-    with open(out, 'w') as f:
-        json.dump(results, f, indent=2)
-    print(f"[+] Saved {len(results)} beta records to {out}")
+def fetch_page(path):
+    url = f"{BASE_URL}{path}"
+    resp = requests.get(url, timeout=30)
+    resp.raise_for_status()
+    return BeautifulSoup(resp.text, "html.parser")
 
-if __name__ == '__main__':
-    s = requests.Session()
-    if login(s):
-        scrape_plsbeta(s)
-    else:
-        print("[-] Login failed")
-        sys.exit(1)
+
+def scrape_cases():
+    soup = fetch_page("/cases")
+    cases = []
+    for item in soup.select(".case-item"):
+        title = item.select_one(".case-title")
+        court = item.select_one(".case-court")
+        date = item.select_one(".case-date")
+        if title:
+            cases.append({
+                "title": title.get_text(strip=True),
+                "court": court.get_text(strip=True) if court else None,
+                "date": date.get_text(strip=True) if date else None,
+                "url": BASE_URL + title.get("href", "") if title.get("href") else None,
+            })
+    return cases
+
+
+def main():
+    cases = scrape_cases()
+    print(json.dumps(cases, indent=2, ensure_ascii=False))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
