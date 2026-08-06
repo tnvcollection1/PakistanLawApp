@@ -1,78 +1,68 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Search } from "lucide-react";
-import { Link } from "react-router-dom";
+import { toast } from "sonner";
 
 export default function DynamicSearch() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
-  const [isSearching, setIsSearching] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const navigate = useNavigate();
+  const wrapperRef = useRef(null);
 
   useEffect(() => {
-    if (query.length < 2) {
-      setResults([]);
-      return;
-    }
-    const timeout = setTimeout(() => {
-      performSearch();
+    const delay = setTimeout(() => {
+      if (query.trim().length > 2) {
+        fetch(`/api/search?q=${encodeURIComponent(query)}&limit=5`)
+          .then((res) => res.json())
+          .then((data) => {
+            setResults(data.results || []);
+            setShowDropdown(true);
+          })
+          .catch(() => toast.error("Search failed"));
+      } else {
+        setShowDropdown(false);
+      }
     }, 300);
-    return () => clearTimeout(timeout);
+    return () => clearTimeout(delay);
   }, [query]);
 
-  const performSearch = () => {
-    setIsSearching(true);
-    // Mock search results
-    setResults([
-      { id: 1, title: `Case related to ${query}`, type: "case" },
-      { id: 2, title: `Statute on ${query}`, type: "statute" },
-      { id: 3, title: `Article about ${query}`, type: "article" },
-    ]);
-    setIsSearching(false);
-  };
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
+        setShowDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    performSearch();
+  const handleSelect = (caseId) => {
+    setShowDropdown(false);
+    navigate(`/cases/${caseId}`);
   };
 
   return (
-    <div className="relative w-full max-w-2xl">
-      <form onSubmit={handleSubmit}>
-        <div className="relative">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Search cases, statutes, articles..."
-            className="pl-8 w-full"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-        </div>
-      </form>
-      {results.length > 0 && (
-        <div className="absolute top-full left-0 right-0 bg-background border rounded-md shadow-lg z-50 mt-1">
-          <ul className="py-2">
-            {results.map((result) => (
-              <li key={result.id}>
-                <Link
-                  to={`/${result.type}s/${result.id}`}
-                  className="block px-4 py-2 hover:bg-accent hover:text-accent-foreground"
-                >
-                  <span className="font-medium">{result.title}</span>
-                  <span className="ml-2 text-xs text-muted-foreground capitalize">
-                    {result.type}
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-      {isSearching && (
-        <div className="absolute top-full left-0 right-0 bg-background border rounded-md shadow-lg z-50 mt-1 p-4 text-center">
-          Searching...
-        </div>
+    <div className="relative w-full max-w-md" ref={wrapperRef}>
+      <Input
+        placeholder="Search cases, statutes..."
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        onFocus={() => query.trim().length > 2 && setShowDropdown(true)}
+      />
+      {showDropdown && results.length > 0 && (
+        <ul className="absolute z-50 w-full bg-white border rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto">
+          {results.map((r) => (
+            <li
+              key={r.id}
+              className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+              onClick={() => handleSelect(r.id)}
+            >
+              <div className="font-medium">{r.title}</div>
+              <div className="text-xs text-gray-500">{r.citation}</div>
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   );

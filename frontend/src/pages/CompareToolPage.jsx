@@ -1,86 +1,50 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Separator } from "@/components/ui/separator";
-import { toast } from "sonner";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function CompareToolPage() {
   const [text1, setText1] = useState("");
   const [text2, setText2] = useState("");
-  const [differences, setDifferences] = useState([]);
+  const [diff, setDiff] = useState([]);
 
-  const handleCompare = () => {
-    // Simple comparison (placeholder)
+  const computeDiff = () => {
     const words1 = text1.split(/\s+/);
     const words2 = text2.split(/\s+/);
-    const diff = [];
-    for (let i = 0; i < Math.max(words1.length, words2.length); i++) {
+    const maxLen = Math.max(words1.length, words2.length);
+    const result = [];
+    for (let i = 0; i < maxLen; i++) {
       if (words1[i] !== words2[i]) {
-        diff.push({
-          position: i,
-          word1: words1[i] || "",
-          word2: words2[i] || "",
-        });
+        result.push({ index: i, left: words1[i] || "", right: words2[i] || "" });
       }
     }
-    setDifferences(diff.slice(0, 20)); // Show first 20 differences
-    toast.success(`Found ${diff.length} differences`);
+    setDiff(result);
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-4">Compare Tool</h1>
-      <p className="text-muted-foreground mb-6">
-        Compare two texts side by side to find differences.
-      </p>
-      <Separator className="my-6" />
-      <div className="grid gap-6 md:grid-cols-2 mb-6">
-        <div>
-          <label className="text-sm font-medium mb-2 block">Text 1</label>
-          <Textarea
-            value={text1}
-            onChange={(e) => setText1(e.target.value)}
-            placeholder="Paste first text here..."
-            className="h-64"
-          />
-        </div>
-        <div>
-          <label className="text-sm font-medium mb-2 block">Text 2</label>
-          <Textarea
-            value={text2}
-            onChange={(e) => setText2(e.target.value)}
-            placeholder="Paste second text here..."
-            className="h-64"
-          />
-        </div>
+    <div className="max-w-4xl mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-6">Compare Tool</h1>
+      <div className="grid grid-cols-2 gap-4 mb-4">
+        <Textarea placeholder="Paste text 1..." value={text1} onChange={(e) => setText1(e.target.value)} rows={10} />
+        <Textarea placeholder="Paste text 2..." value={text2} onChange={(e) => setText2(e.target.value)} rows={10} />
       </div>
-      <Button onClick={handleCompare} className="mb-6">
-        Compare
-      </Button>
-      {differences.length > 0 && (
-        <div className="space-y-2">
-          <h2 className="text-lg font-semibold">Differences</h2>
-          <div className="border rounded-lg overflow-hidden">
-            <table className="w-full text-sm">
-              <thead className="bg-muted">
-                <tr>
-                  <th className="px-4 py-2 text-left">Position</th>
-                  <th className="px-4 py-2 text-left">Text 1</th>
-                  <th className="px-4 py-2 text-left">Text 2</th>
-                </tr>
-              </thead>
-              <tbody>
-                {differences.map((d, i) => (
-                  <tr key={i} className="border-t">
-                    <td className="px-4 py-2">{d.position}</td>
-                    <td className="px-4 py-2 text-red-600">{d.word1}</td>
-                    <td className="px-4 py-2 text-green-600">{d.word2}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+      <Button onClick={computeDiff} className="mb-6">Compare</Button>
+      {diff.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Differences ({diff.length})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-2">
+              {diff.map((d, i) => (
+                <li key={i} className="flex justify-between border-b py-1">
+                  <span className="text-red-600 line-through">{d.left}</span>
+                  <span className="text-green-600">{d.right}</span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
       )}
     </div>
   );

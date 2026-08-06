@@ -1,54 +1,35 @@
-"""
-Mass Content Scraper V3 - Mass content scraper with batching
-"""
-import json
 import requests
-from bs4 import BeautifulSoup
-import concurrent.futures
+import json
+import os
+import time
+from pathlib import Path
 
-BASE_URL = "https://www.pls-beta.com"
+BASE = "https://plsbeta.com"
+TOKEN = os.getenv("PLSBETA_TOKEN", "")
+HEADERS = {"Authorization": f"Bearer {TOKEN}"}
+DATA_DIR = Path("data")
 
-class MassContentScraperV3:
-    def __init__(self, max_workers=50, batch_size=100):
-        self.max_workers = max_workers
-        self.batch_size = batch_size
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-    def fetch_content(self, url):
-        try:
-            resp = requests.get(url, timeout=10)
-            if resp.status_code != 200:
-                return None
-            soup = BeautifulSoup(resp.text, 'html.parser')
-            content = soup.select_one('.content')
-            return content.get_text(strip=True) if content else None
-        except Exception as e:
-            return None
+def fetch_case_content(case_id):
+    r = requests.get(f"{BASE}/api/cases/{case_id}/content", headers=HEADERS, timeout=30)
+    if r.status_code == 200:
+        return r.json()
+    return None
 
-    def scrape_batch(self, urls):
-        results = {}
-        with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as executor:
-            future_to_url = {executor.submit(self.fetch_content, url): url for url in urls}
-            for future in concurrent.futures.as_completed(future_to_url):
-                url = future_to_url[future]
-                try:
-                    results[url] = future.result()
-                except Exception as e:
-                    results[url] = None
-        return results
+def run():
+    DATA_DIR.mkdir(exist_ok=True)
+    with open(DATA_DIR / "case_ids.json") as f:
+        case_ids = json.load(f)
+    for case_id in case_ids:
+        content = fetch_case_content(case_id)
+        if content:
+            with open(DATA_DIR / f"case_{case_id}.json", "w") as f:
+                json.dump(content, f, indent=2)
+            logger.info(f"Saved case {case_id}")
+        time.sleep(0.5)
 
-    def scrape_all(self, urls):
-        all_results = {}
-        for i in range(0, len(urls), self.batch_size):
-            batch = urls[i:i + self.batch_size]
-            print(f"Processing batch {i // self.batch_size + 1}: {len(batch)} URLs")
-            results = self.scrape_batch(batch)
-            all_results.update(results)
-        return all_results
-
-if __name__ == '__main__':
-    scraper = MassContentScraperV3()
-    urls = [f"{BASE_URL}/cases/{i}" for i in range(1, 101)]
-    results = scraper.scrape_all(urls)
-    print(f"Fetched {len(results)} items")
-    with open('mass_content_v3.json', 'w') as f:
-        json.dump(results, f, indent=2)
+if __name__ == "__main__":
+    import logging
+    run()

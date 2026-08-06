@@ -1,45 +1,30 @@
-import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 
-export default function CitationLinker() {
-  const [citation, setCitation] = useState("");
-  const [links, setLinks] = useState([]);
+function CitationLinker({ text }) {
+  const [linkedText, setLinkedText] = useState(text);
 
-  const handleSearch = () => {
-    // Mock citation linking
-    setLinks([
-      { id: 1, case: "Case A", relation: "Cited" },
-      { id: 2, case: "Case B", relation: "Distinguished" },
-      { id: 3, case: "Case C", relation: "Followed" },
-    ]);
-  };
+  useEffect(() => {
+    if (!text) return;
+    // Simple regex to find citations like 2023 SCMR 123 or PLD 2023 SC 1
+    const citationRegex = /\b(\d{4}\s+\w+\s+\d+|PLD\s+\d{4}\s+\w+\s+\d+)\b/g;
+    let parts = [];
+    let lastIndex = 0;
+    let match;
+    while ((match = citationRegex.exec(text)) !== null) {
+      parts.push(text.slice(lastIndex, match.index));
+      parts.push(
+        <Link key={match.index} to={`/cases?citation=${encodeURIComponent(match[0])}`} className="text-blue-600 hover:underline">
+          {match[0]}
+        </Link>
+      );
+      lastIndex = match.index + match[0].length;
+    }
+    parts.push(text.slice(lastIndex));
+    setLinkedText(parts);
+  }, [text]);
 
-  return (
-    <div className="p-4 border rounded-lg bg-background">
-      <h2 className="text-lg font-semibold mb-4">Citation Linker</h2>
-      <div className="flex space-x-2 mb-4">
-        <Input
-          placeholder="Enter citation..."
-          value={citation}
-          onChange={(e) => setCitation(e.target.value)}
-        />
-        <Button onClick={handleSearch}>Find Links</Button>
-      </div>
-      {links.length > 0 && (
-        <div className="space-y-2">
-          <h3 className="font-medium">Linked Cases</h3>
-          <ul className="space-y-2">
-            {links.map((link) => (
-              <li key={link.id} className="flex justify-between items-center p-2 rounded bg-muted">
-                <span>{link.case}</span>
-                <span className="text-sm text-muted-foreground">{link.relation}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </div>
-  );
+  return <span>{linkedText}</span>;
 }
+
+export default CitationLinker;

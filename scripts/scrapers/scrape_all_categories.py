@@ -1,41 +1,36 @@
-"""
-Scrape All Categories - Scrape all categories from PLS
-"""
-import json
 import requests
-from bs4 import BeautifulSoup
+import json
+import os
 
-BASE_URL = "https://www.pls-beta.com"
+BASE = "https://plsbeta.com"
+TOKEN = os.getenv("PLSBETA_TOKEN", "")
+HEADERS = {"Authorization": f"Bearer {TOKEN}"}
 
-class AllCategoryScraper:
-    def __init__(self):
-        self.session = requests.Session()
+CATEGORIES = ["criminal", "civil", "constitutional", "family", "corporate", "tax", "property"]
 
-    def scrape_all_categories(self):
-        url = f"{BASE_URL}/categories"
-        resp = self.session.get(url)
-        soup = BeautifulSoup(resp.text, 'html.parser')
-        categories = []
-        for item in soup.select('.category-item'):
-            categories.append({
-                'name': item.select_one('.category-name').get_text(strip=True) if item.select_one('.category-name') else None,
-                'url': item.select_one('a')['href'] if item.select_one('a') else None,
-                'count': item.select_one('.category-count').get_text(strip=True) if item.select_one('.category-count') else None,
-            })
-        return categories
+def scrape_category(category):
+    page = 1
+    all_cases = []
+    while True:
+        r = requests.get(f"{BASE}/api/cases", headers=HEADERS, params={"category": category, "page": page}, timeout=30)
+        data = r.json()
+        cases = data.get("cases", [])
+        if not cases:
+            break
+        all_cases.extend(cases)
+        page += 1
+        if page > 10:
+            break
+    return all_cases
 
-    def scrape_all_subcategories(self, category_url):
-        resp = self.session.get(category_url)
-        soup = BeautifulSoup(resp.text, 'html.parser')
-        subcategories = []
-        for item in soup.select('.subcategory-item'):
-            subcategories.append({
-                'name': item.select_one('.subcategory-name').get_text(strip=True) if item.select_one('.subcategory-name') else None,
-                'url': item.select_one('a')['href'] if item.select_one('a') else None,
-            })
-        return subcategories
+def run():
+    for cat in CATEGORIES:
+        print(f"Scraping {cat}...")
+        cases = scrape_category(cat)
+        with open(f"data/{cat}_cases.json", "w") as f:
+            json.dump(cases, f, indent=2)
+        print(f"  Saved {len(cases)} cases")
 
-if __name__ == '__main__':
-    scraper = AllCategoryScraper()
-    categories = scraper.scrape_all_categories()
-    print(json.dumps(categories, indent=2))
+if __name__ == "__main__":
+    os.makedirs("data", exist_ok=True)
+    run()

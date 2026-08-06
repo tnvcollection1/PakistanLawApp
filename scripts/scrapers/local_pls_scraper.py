@@ -1,38 +1,20 @@
-"""
-Local PLS Scraper - Local development scraper for PLS
-"""
+import sqlite3
 import json
-import requests
-from bs4 import BeautifulSoup
+from pathlib import Path
 
-BASE_URL = "http://localhost:3000"
+DB_PATH = Path(__file__).parent.parent.parent / "instance" / "pakistan_law.db"
 
-class LocalPLSScraper:
-    def __init__(self):
-        self.session = requests.Session()
+def run():
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    cur.execute("SELECT id, title, citation, content FROM cases WHERE content IS NOT NULL LIMIT 10")
+    rows = cur.fetchall()
+    for row in rows:
+        case_id, title, citation, content = row
+        print(f"Case {case_id}: {title} ({citation})")
+        print(content[:500])
+        print("---")
+    conn.close()
 
-    def scrape_cases(self, page=1):
-        url = f"{BASE_URL}/cases?page={page}"
-        resp = self.session.get(url)
-        soup = BeautifulSoup(resp.text, 'html.parser')
-        cases = []
-        for item in soup.select('.case-item'):
-            cases.append({
-                'title': item.select_one('.title').get_text(strip=True) if item.select_one('.title') else None,
-                'url': item.select_one('a')['href'] if item.select_one('a') else None,
-            })
-        return cases
-
-    def scrape_case_detail(self, case_id):
-        url = f"{BASE_URL}/cases/{case_id}"
-        resp = self.session.get(url)
-        soup = BeautifulSoup(resp.text, 'html.parser')
-        return {
-            'title': soup.select_one('h1').get_text(strip=True) if soup.select_one('h1') else None,
-            'content': soup.select_one('.content').get_text(strip=True) if soup.select_one('.content') else None,
-        }
-
-if __name__ == '__main__':
-    scraper = LocalPLSScraper()
-    cases = scraper.scrape_cases(1)
-    print(json.dumps(cases, indent=2))
+if __name__ == "__main__":
+    run()
