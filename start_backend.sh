@@ -1,2 +1,1 @@
-#!/bin/bash
-python3 server.py
+REPLACE_WITH_START
