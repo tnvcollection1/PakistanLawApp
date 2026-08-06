@@ -1,282 +1,180 @@
-import React, { useState, useEffect } from 'react';
-import { Bell, Plus, Trash2, Loader2, Search, Gavel, Building, Hash, ToggleLeft, ToggleRight, ChevronDown, ChevronUp } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import { Badge } from '../components/ui/badge';
-import SidebarLayout from '../components/SidebarLayout';
-import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import { Bell, ChevronLeft, AlertTriangle, Info, CheckCircle, Trash2, Filter } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
+import PageHeader from "@/components/PageHeader";
+import Sidebar from "@/components/Sidebar";
+import api from "@/lib/api";
 
-const API = process.env.REACT_APP_BACKEND_URL || '';
+const typeIcons = {
+  alert: AlertTriangle,
+  info: Info,
+  update: CheckCircle,
+};
 
-const ALERT_TYPES = [
-  { value: 'court', label: 'Court', icon: Building, placeholder: 'e.g., Supreme Court' },
-  { value: 'judge', label: 'Judge', icon: Gavel, placeholder: 'e.g., Justice Isa' },
-  { value: 'keyword', label: 'Keyword', icon: Search, placeholder: 'e.g., bail, murder, fraud' },
-  { value: 'topic', label: 'Topic', icon: Hash, placeholder: 'e.g., constitutional rights' },
-];
+const typeColors = {
+  alert: "bg-red-500/20 text-red-400",
+  info: "bg-blue-500/20 text-blue-400",
+  update: "bg-green-500/20 text-green-400",
+};
 
 export default function AlertsPage() {
-  const { user } = useAuth();
-  const navigate = useNavigate();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [alerts, setAlerts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showCreate, setShowCreate] = useState(false);
-  const [name, setName] = useState('');
-  const [alertType, setAlertType] = useState('keyword');
-  const [value, setValue] = useState('');
-  const [frequency, setFrequency] = useState('daily');
-  const [creating, setCreating] = useState(false);
-  const [expandedAlert, setExpandedAlert] = useState(null);
-  const [matches, setMatches] = useState({});
-  const [matchLoading, setMatchLoading] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [filterType, setFilterType] = useState("all");
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    if (user?.username) fetchAlerts();
-  }, [user]);
+    fetchAlerts();
+  }, []);
 
   const fetchAlerts = async () => {
+    setIsLoading(true);
     try {
-      const res = await fetch(`${API}/api/alerts?username=${user.username}`);
-      if (res.ok) setAlerts(await res.json());
-    } catch (e) { console.error(e); }
-    finally { setLoading(false); }
+      const res = await api.get("/alerts");
+      setAlerts(res.data || []);
+    } catch (err) {
+      setAlerts([]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const createAlert = async (e) => {
-    e.preventDefault();
-    if (!name.trim() || !value.trim()) return;
-    setCreating(true);
+  const markAsRead = async (id) => {
     try {
-      const res = await fetch(`${API}/api/alerts`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: user.username,
-          name: name.trim(),
-          alert_type: alertType,
-          value: value.trim(),
-          frequency,
-        }),
-      });
-      if (res.ok) {
-        setName(''); setValue(''); setShowCreate(false);
-        fetchAlerts();
-      }
-    } catch (e) { console.error(e); }
-    finally { setCreating(false); }
+      await api.patch(`/alerts/${id}/read`);
+      setAlerts(prev => prev.map(a => a.id === id ? { ...a, read: true } : a));
+    } catch (err) {
+      toast({ title: "Failed to mark as read", variant: "destructive" });
+    }
   };
 
-  const toggleAlert = async (alertId, currentEnabled) => {
+  const deleteAlert = async (id) => {
     try {
-      await fetch(`${API}/api/alerts/${alertId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ enabled: !currentEnabled }),
-      });
-      setAlerts(prev => prev.map(a =>
-        a.alert_id === alertId ? { ...a, enabled: !currentEnabled } : a
-      ));
-    } catch (e) { console.error(e); }
+      await api.delete(`/alerts/${id}`);
+      setAlerts(prev => prev.filter(a => a.id !== id));
+      toast({ title: "Alert deleted" });
+    } catch (err) {
+      toast({ title: "Failed to delete alert", variant: "destructive" });
+    }
   };
 
-  const deleteAlert = async (alertId) => {
-    try {
-      await fetch(`${API}/api/alerts/${alertId}`, { method: 'DELETE' });
-      setAlerts(prev => prev.filter(a => a.alert_id !== alertId));
-    } catch (e) { console.error(e); }
-  };
-
-  const checkMatches = async (alertId) => {
-    if (expandedAlert === alertId) { setExpandedAlert(null); return; }
-    setExpandedAlert(alertId);
-    setMatchLoading(alertId);
-    try {
-      const res = await fetch(`${API}/api/alerts/${alertId}/matches?limit=10`);
-      if (res.ok) {
-        const data = await res.json();
-        setMatches(prev => ({ ...prev, [alertId]: data }));
-      }
-    } catch (e) { console.error(e); }
-    finally { setMatchLoading(null); }
-  };
-
-  const typeConfig = ALERT_TYPES.find(t => t.value === alertType);
+  const filtered = alerts.filter(a => filterType === "all" || a.type === filterType);
+  const unreadCount = alerts.filter(a => !a.read).length;
 
   return (
-    <SidebarLayout>
-      <div className="min-h-screen bg-background" data-testid="alerts-page">
-        <div className="bg-white dark:bg-background border-b shadow-sm px-4 sm:px-6 py-4 sm:py-5">
-          <div className="max-w-4xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <h1 className="text-lg sm:text-xl font-semibold text-slate-800 dark:text-foreground flex items-center gap-2" data-testid="alerts-title">
-                <Bell size={20} className="text-slate-800 dark:text-foreground" /> Case Law Alerts
-              </h1>
-              <p className="text-xs sm:text-sm text-muted-foreground dark:text-muted-foreground mt-1">Get notified when new cases match your criteria</p>
-            </div>
-            <Button onClick={() => setShowCreate(!showCreate)} className="bg-background hover:bg-card w-full sm:w-auto" data-testid="create-alert-btn">
-              <Plus size={14} className="mr-1" /> New Alert
-            </Button>
-          </div>
-        </div>
+    <div className="flex h-screen bg-gradient-to-br from-[#0B1120] via-[#0F172A] to-[#1E293B]">
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <main className="flex-1 flex flex-col overflow-hidden relative">
+        <PageHeader title="Alerts" onMenuClick={() => setSidebarOpen(true)} />
 
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 sm:py-8 space-y-6">
-          {/* Create Alert Form */}
-          {showCreate && (
-            <Card data-testid="create-alert-form">
-              <CardHeader><CardTitle className="text-lg">Create New Alert</CardTitle></CardHeader>
-              <CardContent>
-                <form onSubmit={createAlert} className="space-y-4">
-                  <div>
-                    <label className="text-sm font-medium text-foreground dark:text-muted-foreground mb-1.5 block">Alert Name</label>
-                    <input
-                      type="text" value={name} onChange={(e) => setName(e.target.value)}
-                      placeholder="e.g., Bail Cases in Supreme Court"
-                      className="w-full px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                      data-testid="alert-name-input"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-foreground dark:text-muted-foreground mb-1.5 block">Alert Type</label>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                      {ALERT_TYPES.map((t) => (
-                        <button key={t.value} type="button"
-                          onClick={() => setAlertType(t.value)}
-                          data-testid={`alert-type-${t.value}`}
-                          className={`p-2.5 rounded-lg border text-sm flex items-center gap-2 transition-colors ${
-                            alertType === t.value ? 'bg-primary/10/50 border-primary text-slate-900 dark:text-foreground' : 'hover:bg-background'
-                          }`}>
-                          <t.icon size={14} /> {t.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-foreground dark:text-muted-foreground mb-1.5 block">Search Value</label>
-                    <input
-                      type="text" value={value} onChange={(e) => setValue(e.target.value)}
-                      placeholder={typeConfig?.placeholder}
-                      className="w-full px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                      data-testid="alert-value-input"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-foreground dark:text-muted-foreground mb-1.5 block">Frequency</label>
-                    <div className="flex gap-2">
-                      {['daily', 'weekly'].map(f => (
-                        <button key={f} type="button" onClick={() => setFrequency(f)}
-                          className={`px-4 py-2 rounded-lg border text-sm capitalize ${
-                            frequency === f ? 'bg-primary/10/50 border-primary text-slate-900 dark:text-foreground' : 'hover:bg-background'
-                          }`}>
-                          {f}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="flex gap-2 pt-2">
-                    <Button type="submit" disabled={creating} className="bg-background hover:bg-card" data-testid="save-alert-btn">
-                      {creating ? <Loader2 size={14} className="animate-spin mr-1" /> : <Bell size={14} className="mr-1" />}
-                      Create Alert
-                    </Button>
-                    <Button type="button" variant="outline" onClick={() => setShowCreate(false)}>Cancel</Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Alert List */}
-          {loading ? (
-            <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
-          ) : alerts.length === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-                <Bell size={40} className="text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium text-foreground dark:text-muted-foreground mb-2">No alerts yet</h3>
-                <p className="text-sm text-muted-foreground mb-4">Create an alert to get notified about new cases</p>
-                <Button onClick={() => setShowCreate(true)} className="bg-background hover:bg-card">
-                  <Plus size={14} className="mr-1" /> Create Your First Alert
+        <div className="p-6 overflow-y-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-4">
+                <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+                  <ChevronLeft className="w-5 h-5 text-slate-300" />
                 </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-3">
-              {alerts.map((alert) => (
-                <Card key={alert.alert_id} data-testid={`alert-${alert.alert_id}`}>
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-primary/10">
-                          {(() => {
-                            const Icon = ALERT_TYPES.find(t => t.value === alert.alert_type)?.icon || Bell;
-                            return <Icon size={16} className="text-primary" />;
-                          })()}
-                        </div>
-                        <div>
-                          <h3 className="font-medium text-foreground">{alert.name}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            {ALERT_TYPES.find(t => t.value === alert.alert_type)?.label}: {alert.value}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => toggleAlert(alert.alert_id, alert.enabled)}
-                          data-testid={`toggle-alert-${alert.alert_id}`}
-                          className="p-1.5 rounded-lg hover:bg-background"
-                        >
-                          {alert.enabled ? <ToggleRight size={20} className="text-green-600" /> : <ToggleLeft size={20} className="text-slate-400" />}
-                        </button>
-                        <button
-                          onClick={() => checkMatches(alert.alert_id)}
-                          data-testid={`check-matches-${alert.alert_id}`}
-                          className="p-1.5 rounded-lg hover:bg-background"
-                        >
-                          {expandedAlert === alert.alert_id ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                        </button>
-                        <button
-                          onClick={() => deleteAlert(alert.alert_id)}
-                          data-testid={`delete-alert-${alert.alert_id}`}
-                          className="p-1.5 rounded-lg hover:bg-red-50 text-red-500"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </div>
-
-                    {expandedAlert === alert.alert_id && (
-                      <div className="mt-4 pt-4 border-t">
-                        {matchLoading === alert.alert_id ? (
-                          <div className="flex justify-center py-6"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
-                        ) : matches[alert.alert_id]?.length > 0 ? (
-                          <div className="space-y-2">
-                            <h4 className="text-sm font-medium mb-2">Recent Matches ({matches[alert.alert_id].length})</h4>
-                            {matches[alert.alert_id].map((match) => (
-                              <div
-                                key={match.case_id}
-                                onClick={() => navigate(`/case/${match.case_id}`)}
-                                className="p-3 rounded-lg bg-background hover:bg-card cursor-pointer"
-                              >
-                                <p className="text-sm font-medium">{match.title}</p>
-                                <div className="flex items-center gap-2 mt-1">
-                                  <Badge variant="secondary" className="text-xs">{match.court}</Badge>
-                                  <span className="text-xs text-muted-foreground">{match.date}</span>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-sm text-muted-foreground text-center py-4">No matching cases found yet</p>
-                        )}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-red-500/20 flex items-center justify-center">
+                    <Bell className="w-5 h-5 text-red-400" />
+                  </div>
+                  <div>
+                    <h1 className="text-2xl font-bold text-white">Alerts</h1>
+                    <p className="text-slate-400 text-sm">
+                      {unreadCount > 0 ? `${unreadCount} unread` : "No new alerts"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <select
+                className="px-3 py-2 rounded-md bg-slate-800/60 border border-slate-700 text-white text-sm"
+                value={filterType}
+                onChange={(e) => setFilterType(e.target.value)}
+              >
+                <option value="all">All Alerts</option>
+                <option value="alert">Alerts</option>
+                <option value="info">Info</option>
+                <option value="update">Updates</option>
+              </select>
             </div>
-          )}
+
+            {isLoading ? (
+              <div className="space-y-3">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="h-20 rounded-xl bg-slate-800/40 animate-pulse" />
+                ))}
+              </div>
+            ) : filtered.length === 0 ? (
+              <div className="text-center py-20 text-slate-400">
+                <Bell className="w-12 h-12 mx-auto mb-4 opacity-30" />
+                <p>No alerts found.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {filtered.map((alert, idx) => {
+                  const Icon = typeIcons[alert.type] || Info;
+                  return (
+                    <motion.div
+                      key={alert.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.05 }}
+                      className={`rounded-xl border p-4 flex items-start gap-4 transition-colors ${
+                        alert.read
+                          ? "border-slate-700/50 bg-slate-800/20"
+                          : "border-slate-700/50 bg-slate-800/40"
+                      }`}
+                    >
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${typeColors[alert.type] || typeColors.info}`}>
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-white font-medium">{alert.title}</h3>
+                          {!alert.read && (
+                            <span className="w-2 h-2 rounded-full bg-red-400" />
+                          )}
+                        </div>
+                        <p className="text-slate-400 text-sm mt-1">{alert.message}</p>
+                        <p className="text-slate-500 text-xs mt-1">{alert.created_at}</p>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        {!alert.read && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-sky-400 hover:text-sky-300"
+                            onClick={() => markAsRead(alert.id)}
+                          >
+                            Mark Read
+                          </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-slate-400 hover:text-red-400"
+                          onClick={() => deleteAlert(alert.id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
+          </motion.div>
         </div>
-      </div>
-    </SidebarLayout>
+      </main>
+    </div>
   );
 }

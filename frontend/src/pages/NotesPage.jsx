@@ -1,133 +1,209 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import SidebarLayout from '../components/SidebarLayout';
-import { useAuth } from '../context/AuthContext';
-import { FileText, Trash2, Plus, Loader2 } from 'lucide-react';
-import { Textarea } from '../components/ui/textarea';
-
-const API = process.env.REACT_APP_BACKEND_URL || '';
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import { StickyNote, ChevronLeft, Plus, Trash2, Edit2, Save, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/components/ui/use-toast";
+import PageHeader from "@/components/PageHeader";
+import Sidebar from "@/components/Sidebar";
+import api from "@/lib/api";
 
 export default function NotesPage() {
-  const { user } = useAuth();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notes, setNotes] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const [newNote, setNewNote] = useState({ title: "", content: "" });
+  const [editingNote, setEditingNote] = useState(null);
   const [showForm, setShowForm] = useState(false);
-  const [title, setTitle] = useState('');
-  const [body, setBody] = useState('');
-  const [saving, setSaving] = useState(false);
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    if (user?.username) fetchNotes();
-  }, [user]);
+    fetchNotes();
+  }, []);
 
   const fetchNotes = async () => {
+    setIsLoading(true);
     try {
-      const res = await fetch(`${API}/api/notes?username=${user.username}`);
-      if (res.ok) setNotes(await res.json());
-    } catch (e) { console.error(e); }
-    finally { setLoading(false); }
+      const res = await api.get("/notes");
+      setNotes(res.data || []);
+    } catch (err) {
+      setNotes([]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const saveNote = async (e) => {
-    e.preventDefault();
-    if (!title.trim() || !body.trim()) return;
-    setSaving(true);
+  const addNote = async () => {
+    if (!newNote.title.trim()) {
+      toast({ title: "Title is required", variant: "destructive" });
+      return;
+    }
     try {
-      const res = await fetch(`${API}/api/notes`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: user.username, title: title.trim(), body: body.trim() }),
-      });
-      if (res.ok) {
-        setTitle(''); setBody(''); setShowForm(false);
-        fetchNotes();
-      }
-    } catch (e) { console.error(e); }
-    finally { setSaving(false); }
+      const res = await api.post("/notes", newNote);
+      setNotes(prev => [res.data, ...prev]);
+      setNewNote({ title: "", content: "" });
+      setShowForm(false);
+      toast({ title: "Note added" });
+    } catch (err) {
+      toast({ title: "Failed to add note", variant: "destructive" });
+    }
   };
 
-  const deleteNote = async (noteId) => {
+  const updateNote = async () => {
+    if (!editingNote || !editingNote.title.trim()) return;
     try {
-      await fetch(`${API}/api/notes/${noteId}`, { method: 'DELETE' });
-      setNotes(prev => prev.filter(n => n.note_id !== noteId));
-    } catch (e) { console.error(e); }
+      await api.patch(`/notes/${editingNote.id}`, editingNote);
+      setNotes(prev => prev.map(n => n.id === editingNote.id ? editingNote : n));
+      setEditingNote(null);
+      toast({ title: "Note updated" });
+    } catch (err) {
+      toast({ title: "Failed to update note", variant: "destructive" });
+    }
+  };
+
+  const deleteNote = async (id) => {
+    if (!window.confirm("Delete this note?")) return;
+    try {
+      await api.delete(`/notes/${id}`);
+      setNotes(prev => prev.filter(n => n.id !== id));
+      toast({ title: "Note deleted" });
+    } catch (err) {
+      toast({ title: "Failed to delete note", variant: "destructive" });
+    }
   };
 
   return (
-    <SidebarLayout>
-      <div className="min-h-screen bg-background">
-        <div className="bg-white dark:bg-background border-b shadow-sm px-4 sm:px-6 py-4 sm:py-5">
-          <div className="max-w-4xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <h1 className="text-lg sm:text-xl font-semibold text-slate-800 dark:text-foreground flex items-center gap-2">
-                <FileText size={20} className="text-slate-800 dark:text-foreground" /> My Notes
-              </h1>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-1">Personal case law research notes</p>
-            </div>
-            <Button onClick={() => setShowForm(!showForm)} className="bg-background hover:bg-card w-full sm:w-auto">
-              <Plus size={14} className="mr-1" /> New Note
-            </Button>
-          </div>
-        </div>
+    <div className="flex h-screen bg-gradient-to-br from-[#0B1120] via-[#0F172A] to-[#1E293B]">
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <main className="flex-1 flex flex-col overflow-hidden relative">
+        <PageHeader title="Notes" onMenuClick={() => setSidebarOpen(true)} />
 
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 sm:py-8 space-y-4">
-          {showForm && (
-            <Card>
-              <CardHeader><CardTitle className="text-lg">Create Note</CardTitle></CardHeader>
-              <CardContent>
-                <form onSubmit={saveNote} className="space-y-3">
-                  <input
-                    type="text" value={title} onChange={e => setTitle(e.target.value)}
-                    placeholder="Note title..."
-                    className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
-                  <Textarea value={body} onChange={e => setBody(e.target.value)} placeholder="Write your note here..." rows={6} />
-                  <div className="flex gap-2">
-                    <Button type="submit" disabled={saving} className="bg-background hover:bg-card">
-                      {saving ? <Loader2 size={14} className="animate-spin mr-1" /> : <FileText size={14} className="mr-1" />}
-                      Save Note
-                    </Button>
-                    <Button type="button" variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
-          )}
-
-          {loading ? (
-            <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
-          ) : notes.length === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-                <FileText size={40} className="text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium text-foreground mb-2">No notes yet</h3>
-                <p className="text-sm text-muted-foreground mb-4">Create your first research note</p>
-                <Button onClick={() => setShowForm(true)} className="bg-background hover:bg-card">
-                  <Plus size={14} className="mr-1" /> Create Note
+        <div className="p-6 overflow-y-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-4">
+                <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+                  <ChevronLeft className="w-5 h-5 text-slate-300" />
                 </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            notes.map(note => (
-              <Card key={note.note_id}>
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-foreground truncate">{note.title}</h3>
-                      <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{note.body}</p>
-                      <p className="text-xs text-muted-foreground mt-2">{new Date(note.created_at).toLocaleDateString()}</p>
-                    </div>
-                    <button onClick={() => deleteNote(note.note_id)} className="p-1.5 rounded-lg hover:bg-red-50 text-red-500 shrink-0">
-                      <Trash2 size={16} />
-                    </button>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center">
+                    <StickyNote className="w-5 h-5 text-amber-400" />
                   </div>
-                </CardContent>
-              </Card>
-            ))
-          )}
+                  <div>
+                    <h1 className="text-2xl font-bold text-white">Notes</h1>
+                    <p className="text-slate-400 text-sm">Your personal case notes</p>
+                  </div>
+                </div>
+              </div>
+              <Button
+                className="bg-amber-600 hover:bg-amber-700"
+                onClick={() => { setShowForm(!showForm); setEditingNote(null); }}
+              >
+                {showForm ? <X className="w-4 h-4 mr-1" /> : <Plus className="w-4 h-4 mr-1" />}
+                {showForm ? "Cancel" : "Add Note"}
+              </Button>
+            </div>
+
+            {showForm && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                className="rounded-xl border border-slate-700/50 bg-slate-800/40 p-4 mb-4"
+              >
+                <Input
+                  placeholder="Note title"
+                  className="bg-slate-800 border-slate-700 text-white mb-3"
+                  value={newNote.title}
+                  onChange={(e) => setNewNote({ ...newNote, title: e.target.value })}
+                />
+                <textarea
+                  placeholder="Note content..."
+                  className="w-full h-24 px-3 py-2 rounded-md bg-slate-800 border border-slate-700 text-white text-sm resize-none mb-3"
+                  value={newNote.content}
+                  onChange={(e) => setNewNote({ ...newNote, content: e.target.value })}
+                />
+                <Button className="bg-amber-600 hover:bg-amber-700" onClick={addNote}>
+                  <Save className="w-4 h-4 mr-1" /> Save Note
+                </Button>
+              </motion.div>
+            )}
+
+            {isLoading ? (
+              <div className="space-y-3">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="h-24 rounded-xl bg-slate-800/40 animate-pulse" />
+                ))}
+              </div>
+            ) : notes.length === 0 ? (
+              <div className="text-center py-20 text-slate-400">
+                <StickyNote className="w-12 h-12 mx-auto mb-4 opacity-30" />
+                <p>No notes yet.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {notes.map((note, idx) => (
+                  <motion.div
+                    key={note.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.05 }}
+                    className="rounded-xl border border-slate-700/50 bg-slate-800/40 p-4 hover:bg-slate-800/60 transition-colors"
+                  >
+                    {editingNote?.id === note.id ? (
+                      <>
+                        <Input
+                          className="bg-slate-800 border-slate-700 text-white mb-2"
+                          value={editingNote.title}
+                          onChange={(e) => setEditingNote({ ...editingNote, title: e.target.value })}
+                        />
+                        <textarea
+                          className="w-full h-20 px-3 py-2 rounded-md bg-slate-800 border border-slate-700 text-white text-sm resize-none mb-2"
+                          value={editingNote.content}
+                          onChange={(e) => setEditingNote({ ...editingNote, content: e.target.value })}
+                        />
+                        <div className="flex gap-2">
+                          <Button size="sm" className="bg-amber-600" onClick={updateNote}>
+                            <Save className="w-3 h-3 mr-1" /> Save
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => setEditingNote(null)}>
+                            <X className="w-3 h-3 mr-1" /> Cancel
+                          </Button>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex items-start justify-between mb-2">
+                          <h3 className="text-white font-medium">{note.title}</h3>
+                          <div className="flex gap-1">
+                            <Button variant="ghost" size="icon" className="text-slate-400 hover:text-amber-400"
+                              onClick={() => setEditingNote(note)}
+                            >
+                              <Edit2 className="w-3 h-3" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="text-slate-400 hover:text-red-400"
+                              onClick={() => deleteNote(note.id)}
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        </div>
+                        <p className="text-slate-400 text-sm line-clamp-3">{note.content}</p>
+                        <p className="text-slate-500 text-xs mt-2">{note.updated_at}</p>
+                      </>
+                    )}
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </motion.div>
         </div>
-      </div>
-    </SidebarLayout>
+      </main>
+    </div>
   );
 }
