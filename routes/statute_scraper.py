@@ -1,26 +1,82 @@
-from flask import Blueprint, jsonify, request
-from db import get_db
-import requests
-from bs4 import BeautifulSoup
+"""
+Statute Scraping Management API — trigger and monitor statute section scraping.
+"""
+from fastapi import APIRouter, HTTPException, BackgroundTasks
+from database import db
+import os
+import json
+import subprocess
 
-statute_scraper_bp = Blueprint('statute_scraper', __name__)
+router = APIRouter()
 
-@statute_scraper_bp.route('/api/scrape_statute', methods=['POST'])
-def scrape_statute():
-    data = request.json
-    url = data.get('url')
-    if not url:
-        return jsonify({"error": "URL is required"}), 400
-    
+PROGRESS_FILE = '/tmp/statute_scraper_progress.json'
+
+
+@router.get("/statute-scraper/status")
+async def get_scrape_status():
+    """Get current scraping progress."""
+    # Check how many statutes have been scraped
+    total = await db.pls_statutes.estimated_document_count()
+    scraped = await db.pls_statutes.count_documents({"sections_scraped_at": {"$exists": True}})
+    with_sections = await db.pls_statutes.count_documents({"sections_count": {"$gt": 0}})
+
+    progress = {}
+    if os.path.exists(PROGRESS_FILE):
+        with open(PROGRESS_FILE) as f:
+            progress = json.load(f)
+
+    return {
+        "total_statutes": total,
+        "scraped": scraped,
+        "with_sections": with_sections,
+        "remaining": total - scraped,
+        "percent_complete": round((scraped / total * 100), 1) if total > 0 else 0,
+        "scraper_progress": progress,
+    }
+
+
+@router.post("/statute-scraper/trigger")
+async def trigger_scrape(batch: int = 50, letter: str = None):
+    """Trigger a batch of statute scraping in the background."""
+    cmd = ["python3", "scripts/scrape_statutes.py", "--batch", str(batch)]
+    if letter:
+        cmd += ["--letter", letter]
+
     try:
-        resp = requests.get(url, timeout=30)
-        soup = BeautifulSoup(resp.text, 'html.parser')
-        title = soup.find('title').get_text(strip=True) if soup.find('title') else 'No title'
-        content = soup.get_text(separator='\n', strip=True)
-        
-        db = get_db()
-        db.statutes.insert_one({"url": url, "title": title, "content": content[:5000]})
-        
-        return jsonify({"title": title, "content_length": len(content)})
+        # Run in background
+        process = subprocess.Popen(
+            cmd,
+            cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            stdout=open('/tmp/statute_scraper.log', 'a'),
+            stderr=subprocess.STDOUT,
+        )
+        return {
+            "status": "started",
+            "pid": process.pid,
+            "batch_size": batch,
+            "letter": letter,
+            "message": f"Scraping {batch} statutes in background. Check /api/statute-scraper/status for progress.",
+        }
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/statute-scraper/sections/{statute_name}")
+async def get_statute_sections(statute_name: str):
+    """Get sections for a specific statute."""
+    statute = await db.pls_statutes.find_one(
+        {"name": {"$regex": f"^{statute_name}$", "$options": "i"}},
+        {"_id": 0}
+    )
+    if not statute:
+        raise HTTPException(status_code=404, detail="Statute not found")
+
+    sections = statute.get("sections", [])
+    return {
+        "name": statute.get("name"),
+        "category": statute.get("category"),
+        "year": statute.get("year"),
+        "sections_count": len(sections),
+        "sections": sections,
+        "scraped_at": statute.get("sections_scraped_at"),
+    }
