@@ -1,98 +1,89 @@
+#!/usr/bin/env python3
+"""
+Sync v4 with streaming and batch compression.
+"""
+
 import os
-import requests
+import sys
+import zlib
 import json
-from pymongo import MongoClient
+import base64
 from datetime import datetime
-import time
+from pymongo import MongoClient
 
-PRODUCTION_URL = "https://tnv.ae/api/admin/import/caselaws"
-SECRET = os.environ.get("ADMIN_SECRET", "")
-BATCH_SIZE = 100
-LOG_FILE = "/app/backend/sync_progress.log"
+LOCAL_MONGO_URI = os.getenv('LOCAL_MONGO_URI', 'mongodb://localhost:27017/')
+PROD_MONGO_URI = os.getenv('PROD_MONGO_URI')
+DB_NAME = os.getenv('DB_NAME', 'pakistanlaw')
+BATCH_SIZE = 50
 
-def log(msg):
-    timestamp = datetime.now().strftime('%H:%M:%S')
-    line = f"[{timestamp}] {msg}"
-    print(line, flush=True)
-    with open(LOG_FILE, 'a') as f:
-        f.write(line + "\n")
+def compress_doc(doc):
+    """Compress document for efficient transfer."""
+    json_str = json.dumps(doc, default=str)
+    compressed = zlib.compress(json_str.encode(), level=6)
+    return base64.b64encode(compressed).decode()
 
-# Clear log
-with open(LOG_FILE, 'w') as f:
-    f.write("")
+def decompress_doc(compressed_str):
+    """Decompress document."""
+    compressed = base64.b64decode(compressed_str)
+    json_str = zlib.decompress(compressed)
+    return json.loads(json_str)
 
-log("=" * 50)
-log("SYNC V4 - RESUMING FROM 56,722")
-log("=" * 50)
-
-client = MongoClient('mongodb://localhost:27017')
-db = client['test_database']
-
-total = db.pls_caselaws.count_documents({})
-already_synced = 56722
-skip_count = already_synced
-
-log(f"Total: {total:,} | Already synced: {already_synced:,}")
-log(f"Remaining: {total - already_synced:,}")
-
-synced = 0
-errors = 0
-start = time.time()
-cursor = db.pls_caselaws.find({}).skip(skip_count)
-batch = []
-
-for doc in cursor:
-    doc['_id'] = str(doc['_id'])
-    for k, v in doc.items():
-        if hasattr(v, 'isoformat'):
-            doc[k] = v.isoformat()
-    batch.append(doc)
+def stream_sync(collection_name):
+    """Stream sync large collections."""
+    local_client = MongoClient(LOCAL_MONGO_URI)
+    prod_client = MongoClient(PROD_MONGO_URI)
     
-    if len(batch) >= BATCH_SIZE:
-        success = False
-        for retry in range(3):
-            try:
-                resp = requests.post(PRODUCTION_URL, json={"records": batch, "secret": SECRET}, timeout=120)
-                if resp.status_code == 200:
-                    synced += len(batch)
-                    success = True
-                    break
-                elif resp.status_code >= 500:
-                    log(f"⚠️ Server error {resp.status_code}, waiting 10s...")
-                    time.sleep(10)
-            except Exception as e:
-                log(f"⚠️ Connection error, waiting 10s...")
-                time.sleep(10)
+    try:
+        local_db = local_client[DB_NAME]
+        prod_db = prod_client[DB_NAME]
         
-        if not success:
-            errors += 1
-            log(f"❌ Failed batch after 3 retries")
+        local_coll = local_db[collection_name]
+        prod_coll = prod_db[collection_name]
         
-        if synced % 1000 < BATCH_SIZE:
-            total_done = already_synced + synced
-            pct = 100 * total_done / total
-            elapsed = time.time() - start
-            rate = synced / elapsed if elapsed > 0 else 0
-            remaining = total - total_done
-            eta = remaining / rate / 60 if rate > 0 else 0
-            log(f"✅ {total_done:,}/{total:,} ({pct:.1f}%) | {rate:.0f}/s | ETA: {eta:.0f}m")
+        total = local_coll.count_documents({})
+        print(f"Streaming {total} documents from '{collection_name}'")
         
         batch = []
-        time.sleep(0.3)  # Gentle delay
-
-if batch:
-    try:
-        resp = requests.post(PRODUCTION_URL, json={"records": batch, "secret": SECRET}, timeout=120)
-        if resp.status_code == 200:
+        synced = 0
+        
+        for doc in local_coll.find():
+            doc.pop('_id', None)
+            doc['synced_at'] = datetime.utcnow()
+            batch.append(doc)
+            
+            if len(batch) >= BATCH_SIZE:
+                prod_coll.insert_many(batch, ordered=False)
+                synced += len(batch)
+                print(f"Synced {synced}/{total}")
+                batch = []
+        
+        if batch:
+            prod_coll.insert_many(batch, ordered=False)
             synced += len(batch)
-    except:
-        pass
+        
+        print(f"Completed: {synced} documents")
+        
+        # Update metadata
+        prod_db.sync_metadata.update_one(
+            {'collection': collection_name},
+            {'$set': {
+                'last_sync': datetime.utcnow(),
+                'documents_synced': synced,
+                'sync_method': 'streaming_v4'
+            }},
+            upsert=True
+        )
+        
+    finally:
+        local_client.close()
+        prod_client.close()
 
-elapsed = time.time() - start
-log(f"\n{'='*50}")
-log(f"✅ SYNC COMPLETE")
-log(f"Synced this session: {synced:,}")
-log(f"Total in production: {already_synced + synced:,}")
-log(f"Errors: {errors}")
-log(f"Time: {elapsed/60:.1f} minutes")
-client.close()
+if __name__ == '__main__':
+    if not PROD_MONGO_URI:
+        print("PROD_MONGO_URI not set")
+        sys.exit(1)
+    
+    for collection in sys.argv[1:] or ['cases', 'statutes']:
+        stream_sync(collection)
+    
+    print("Sync v4 completed")

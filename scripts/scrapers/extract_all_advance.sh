@@ -1,69 +1,99 @@
 #!/bin/bash
 
-COOKIE="__RequestVerificationToken=RZMpX_vriSVp1Le-VI-zWhyBC9jh7e3RISRCVq0LFiixwIka5bWuiH_QX8_LXvddPwdoQKiH_tMACdB9DSE8Tgzfm-vB_tHe6L4MeWO73Xc1; ASP.NET_SessionId=ugjhryc1iem0i2ikezqwv1g2"
+# Comprehensive extraction script for all advance search results
 
-OUTFILE="/app/backend/advance_search_all_cases.txt"
-> $OUTFILE
+set -e
 
-extract_cases() {
-    local court="$1"
-    local total_expected="$2"
-    local row_no=0
-    local cases_found=0
+BASE_URL="https://www.pakistanlawsite.com"
+OUTPUT_DIR="${1:-./data/advance_search}"
+MAX_PAGES="${2:-100}"
+COOKIE_JAR="/tmp/pls_cookies.txt"
+
+mkdir -p "$OUTPUT_DIR"
+
+echo "Starting comprehensive advance search extraction"
+echo "Output directory: $OUTPUT_DIR"
+echo "Max pages: $MAX_PAGES"
+
+# Function to fetch a page
+fetch_page() {
+    local url="$1"
+    local output="$2"
     
-    echo "Extracting from $court (expected: $total_expected)..."
+    curl -s -L \
+        --cookie-jar "$COOKIE_JAR" \
+        --cookie "$COOKIE_JAR" \
+        -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" \
+        --connect-timeout 10 \
+        --max-time 30 \
+        "$url" -o "$output"
     
-    while [ $row_no -lt $total_expected ] && [ $row_no -lt 50000 ]; do
-        # Use LoadMoreAdvanceSearch for pagination
-        if [ $row_no -eq 0 ]; then
-            URL="https://www.pakistanlawsite.com/Login/AdvanceSearch"
-        else
-            URL="https://www.pakistanlawsite.com/Login/LoadMoreAdvanceSearch"
-        fi
+    if [ -s "$output" ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# Extract case links from search results
+extract_links() {
+    local html_file="$1"
+    
+    python3 -c "
+import re
+import sys
+
+with open('$html_file', 'r') as f:
+    content = f.read()
+
+# Find case detail links
+links = re.findall(r'href=[\"\'](Case[^\"\']*|[0-9]+[^\"\']*))[\"\']', content)
+for link in links:
+    if 'case' in link.lower():
+        print(link)
+" | sort -u
+}
+
+# Main extraction
+page=1
+while [ $page -le $MAX_PAGES ]; do
+    echo "Processing page $page..."
+    
+    # Fetch search results page
+    search_url="${BASE_URL}/AdvanceSearch.aspx?page=${page}"
+    html_file="$OUTPUT_DIR/page_${page}.html"
+    
+    if fetch_page "$search_url" "$html_file"; then
+        # Extract links
+        links_file="$OUTPUT_DIR/links_page_${page}.txt"
+        extract_links "$html_file" > "$links_file"
         
-        result=$(curl -s -X POST "$URL" \
-          -H "Cookie: $COOKIE" \
-          -H "Content-Type: application/x-www-form-urlencoded; charset=UTF-8" \
-          -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" \
-          -H "X-Requested-With: XMLHttpRequest" \
-          -d "court=$court&judge=&lawyer=&appelant=&nd=&rule=&act=&actSection=&act1=&act1Section=&rowNo=$row_no" \
-          --max-time 60 2>&1)
+        count=$(wc -l < "$links_file" | tr -d ' ')
+        echo "Found $count links on page $page"
         
-        # Extract case IDs
-        new_cases=$(echo "$result" | grep -oP 'caseName="[^"]+"' | sed 's/caseName="//g;s/"//g' | sort -u)
-        count=$(echo "$new_cases" | grep -c .)
-        
-        if [ $count -eq 0 ]; then
-            echo "  No more cases at row $row_no"
+        # If no links found, might be last page
+        if [ "$count" -eq 0 ]; then
+            echo "No more links found. Stopping."
             break
         fi
         
-        echo "$new_cases" >> $OUTFILE
-        cases_found=$((cases_found + count))
-        echo "  Row $row_no: +$count cases (total: $cases_found)"
-        
-        row_no=$((row_no + 70))
-        sleep 0.2
-    done
+        # Fetch each case
+        while IFS= read -r link; do
+            case_url="${BASE_URL}/${link}"
+            case_id=$(echo "$link" | md5sum | cut -d' ' -f1)
+            case_file="$OUTPUT_DIR/case_${case_id}.html"
+            
+            if [ ! -f "$case_file" ]; then
+                fetch_page "$case_url" "$case_file"
+                sleep 2
+            fi
+        done < "$links_file"
+    else
+        echo "Failed to fetch page $page"
+    fi
     
-    echo "  Finished $court: $cases_found cases extracted"
-}
+    page=$((page + 1))
+    sleep 3
+done
 
-# Extract from major courts
-extract_cases "SUPREME-COURT" 99069
-extract_cases "LAHORE-HIGH-COURT" 136922
-extract_cases "KARACHI" 90464
-extract_cases "PESHAWAR-HIGH-COURT" 25777
-extract_cases "QUETTA" 10301
-extract_cases "ISLAMABAD" 5651
-extract_cases "BALOCHISTAN" 10742
-extract_cases "FEDERAL-SHARIAT-COURT" 4460
-extract_cases "APPELLATE" 22416
-extract_cases "TRIBUNAL" 33799
-
-# Deduplicate
-echo ""
-echo "Deduplicating..."
-sort -u $OUTFILE > /app/backend/advance_search_unique.txt
-total=$(wc -l < /app/backend/advance_search_unique.txt)
-echo "Total unique cases: $total"
+echo "Extraction complete. Results in $OUTPUT_DIR"

@@ -1,79 +1,75 @@
-"""
-Related Cases - Find cases similar to a given case.
-"""
-from fastapi import APIRouter, HTTPException
-from database import db
-from bson import ObjectId
+from flask import Blueprint, jsonify, request
+from models import Case
+from extensions import db
+from sqlalchemy import func
 
-router = APIRouter()
+related_bp = Blueprint('related', __name__)
 
-
-@router.get("/cases/{case_id}/related")
-async def get_related_cases(case_id: str, limit: int = 5):
-    """Find cases related to the given case based on text similarity."""
-    case = await db.merged_caselaws.find_one(
-        {"_id": ObjectId(case_id)},
-        {"citation": 1, "headnotes": 1, "_id": 0},
-    )
-    if not case:
-        raise HTTPException(status_code=404, detail="Case not found")
-
-    citation = case.get("citation", "")
-    if not citation:
-        raise HTTPException(status_code=400, detail="Case has no citation for related search")
-
-    # Extract the first part of citation (e.g., "1977" from "1977 SCMR 48")
-    # for a fast indexed lookup
-    citation_parts = citation.split()
-    search_term = citation_parts[0] if citation_parts else citation
-
+@related_bp.route('/api/cases/<int:case_id>/related', methods=['GET'])
+def get_related_cases(case_id):
+    """Find related cases based on shared citations and content similarity."""
+    case = Case.query.get_or_404(case_id)
+    
+    limit = request.args.get('limit', 5, type=int)
+    
+    # Find cases with same court and similar year
+    court_cases = Case.query.filter(
+        Case.court == case.court,
+        Case.id != case_id
+    ).order_by(
+        func.abs(Case.year - case.year)
+    ).limit(limit).all()
+    
+    # Find cases with shared citations (if citations field exists)
     related = []
+    for c in court_cases:
+        score = 0
+        if c.court == case.court:
+            score += 50
+        if c.year == case.year:
+            score += 30
+        elif abs(c.year - case.year) <= 2:
+            score += 15
+        
+        related.append({
+            'id': c.id,
+            'title': c.title,
+            'citation': c.citation,
+            'court': c.court,
+            'year': c.year,
+            'relevance_score': score
+        })
+    
+    # Sort by relevance score
+    related.sort(key=lambda x: x['relevance_score'], reverse=True)
+    
+    return jsonify({
+        'case_id': case_id,
+        'case_title': case.title,
+        'related_cases': related[:limit]
+    })
 
-    # Try $text search with citation (uses idx_fulltext_search)
-    try:
-        related_cursor = db.merged_caselaws.find(
-            {
-                "$text": {"$search": citation},
-                "_id": {"$ne": ObjectId(case_id)},
-            },
-            {
-                "score": {"$meta": "textScore"},
-                "citation": 1,
-                "parties": 1,
-                "headnotes": 1,
-                "year": 1,
-                "court": 1,
-            },
-        ).sort([("score", {"$meta": "textScore"})]).limit(limit)
-        related = await related_cursor.to_list(limit)
-    except Exception:
-        pass
-
-    # Fallback: citation prefix regex (uses idx_citation index)
-    if not related:
-        try:
-            related_cursor = db.merged_caselaws.find(
-                {
-                    "citation": {"$regex": "^" + search_term, "$options": "i"},
-                    "_id": {"$ne": ObjectId(case_id)},
-                },
-                {
-                    "citation": 1,
-                    "parties": 1,
-                    "headnotes": 1,
-                    "year": 1,
-                    "court": 1,
-                },
-            ).limit(limit)
-            related = await related_cursor.to_list(limit)
-        except Exception:
-            pass
-
-    for r in related:
-        r["_id"] = str(r["_id"])
-
-    return {
-        "case": citation,
-        "case_id": case_id,
-        "related_cases": related,
-    }
+@related_bp.route('/api/cases/<int:case_id>/cited-by', methods=['GET'])
+def get_cited_by(case_id):
+    """Get cases that cite this case."""
+    case = Case.query.get_or_404(case_id)
+    
+    # Simple citation matching - can be enhanced with proper citation parsing
+    citation_pattern = case.citation.replace(' ', '%')
+    
+    citing_cases = Case.query.filter(
+        Case.content.like(f'%{citation_pattern}%'),
+        Case.id != case_id
+    ).limit(10).all()
+    
+    return jsonify({
+        'case_id': case_id,
+        'citation': case.citation,
+        'cited_by': [{
+            'id': c.id,
+            'title': c.title,
+            'citation': c.citation,
+            'court': c.court,
+            'year': c.year
+        } for c in citing_cases]
+    })

@@ -1,92 +1,117 @@
 #!/usr/bin/env python3
 """
-Scrape Dictionary from PakistanLawSite
+Dictionary scraper for Pakistan legal dictionary.
 """
+
 import requests
-import json
 import re
-import html as html_lib
+import json
 import time
+import os
+from bs4 import BeautifulSoup
+from urllib.parse import urljoin, quote
 
-COOKIE = "ASP.NET_SessionId=qafzv44ctxplfcbzy5qaxtgj; __RequestVerificationToken=cgGcIYoNV7nI6OcGKHg1CT9MoWn8iaRUpmxN-4q7PjvEfhtYG78RWELK-UA5wM8CZE0lSLjYOX-EL-aofCi3Zth-khKoUOn8cHY7Pbuzpt01; x-hng=lang=en-US&domain=www.pakistanlawsite.com"
+BASE_URL = "https://www.pakistanlawsite.com"
+OUTPUT_DIR = "./data/dictionary"
 
-HEADERS = {
-    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-    'Cookie': COOKIE,
-    'X-Requested-With': 'XMLHttpRequest',
-    'Referer': 'https://www.pakistanlawsite.com/Login/DictionaryPage'
-}
-
-def extract_dictionary_items(html_content):
-    """Extract dictionary items from HTML"""
-    items = []
-    pattern = r'<tr class="caseType"[^>]*casetypeid="(\d+)"[^>]*>.*?<td>\d+</td>.*?<td[^>]*>([^<]+)</td>.*?<td>([^<]+)</td>'
-    matches = re.findall(pattern, html_content, re.DOTALL)
-    
-    for item_id, word, meaning in matches:
-        word = html_lib.unescape(word.strip())
-        meaning = html_lib.unescape(meaning.strip())
-        if word and meaning:
-            items.append({
-                'item_id': item_id,
-                'word': word,
-                'meaning': meaning[:500] + '...' if len(meaning) > 500 else meaning
-            })
-    
-    return items
-
-def search_dictionary(letter):
-    """Search dictionary by letter"""
-    url = f"https://www.pakistanlawsite.com/Login/DictionarySearch?text={letter}"
-    
-    try:
-        resp = requests.get(url, headers=HEADERS, timeout=60)
-        if 'HandleError' in resp.text:
-            return None
-        return extract_dictionary_items(resp.text)
-    except Exception as e:
-        print(f"Error for {letter}: {e}")
-        return []
-
-def main():
-    print("=== Scraping Dictionary ===")
-    all_items = {}
-    
-    for letter in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ':
-        items = search_dictionary(letter.lower())
-        
-        if items is None:
-            print(f"  Session expired at letter {letter}")
-            break
-        
-        for item in items:
-            all_items[item['item_id']] = item
-        
-        print(f"  Letter {letter}: {len(items)} items (unique total: {len(all_items)})")
-        time.sleep(0.2)
-    
-    final_items = list(all_items.values())
-    
-    print(f"\n=== RESULTS ===")
-    print(f"Total unique Dictionary items: {len(final_items)}")
-    
-    # Save
-    output = {
-        'type': 'dictionary',
-        'total': len(final_items),
-        'items': final_items
+def fetch_page(url, retries=3):
+    """Fetch page with retries."""
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept': 'text/html,application/xhtml+xml'
     }
     
-    with open('/app/backend/pls_dictionary.json', 'w') as f:
-        json.dump(output, f, indent=2)
+    for attempt in range(retries):
+        try:
+            resp = requests.get(url, headers=headers, timeout=15)
+            resp.raise_for_status()
+            return resp.text
+        except Exception as e:
+            print(f"Attempt {attempt + 1} failed for {url}: {e}")
+            time.sleep(2 ** attempt)
     
-    print(f"Saved to /app/backend/pls_dictionary.json")
+    return None
+
+def extract_dictionary_entries(html):
+    """Extract dictionary entries from HTML."""
+    soup = BeautifulSoup(html, 'html.parser')
+    entries = []
     
-    # Sample
-    print("\nSample items:")
-    for item in final_items[:5]:
-        print(f"  [{item['item_id']}] {item['word'][:40]}...")
-        print(f"      Meaning: {item['meaning'][:60]}...")
+    # Look for term-definition pairs
+    for elem in soup.find_all(['div', 'tr', 'li']):
+        term_elem = elem.find(class_=re.compile(r'term|word|title', re.I))
+        def_elem = elem.find(class_=re.compile(r'definition|meaning|desc', re.I))
+        
+        if term_elem and def_elem:
+            entry = {
+                'term': term_elem.get_text().strip(),
+                'definition': def_elem.get_text().strip(),
+                'source_url': None
+            }
+            
+            # Skip if too short or too long
+            if 2 < len(entry['term']) < 200 and len(entry['definition']) > 10:
+                entries.append(entry)
+    
+    return entries
+
+def scrape_dictionary():
+    """Main dictionary scraper."""
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    
+    print("Starting dictionary scraper")
+    
+    all_entries = []
+    
+    # Scrape main dictionary pages
+    urls = [
+        f"{BASE_URL}/Dictionary.aspx",
+        f"{BASE_URL}/LegalDictionary.aspx",
+        f"{BASE_URL}/BlackLaw.aspx",
+    ]
+    
+    # Also try A-Z pages
+    for letter in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ':
+        urls.append(f"{BASE_URL}/Dictionary.aspx?letter={letter}")
+    
+    for url in urls:
+        print(f"Fetching: {url}")
+        html = fetch_page(url)
+        
+        if html:
+            entries = extract_dictionary_entries(html)
+            all_entries.extend(entries)
+            print(f"Found {len(entries)} entries")
+        
+        time.sleep(1)
+    
+    # Deduplicate
+    seen = set()
+    unique = []
+    for e in all_entries:
+        key = e['term'].lower()
+        if key not in seen:
+            seen.add(key)
+            unique.append(e)
+    
+    print(f"\nTotal unique entries: {len(unique)}")
+    
+    # Save
+    output_file = os.path.join(OUTPUT_DIR, 'dictionary.json')
+    with open(output_file, 'w', encoding='utf-8') as f:
+        json.dump(unique, f, ensure_ascii=False, indent=2)
+    
+    print(f"Saved to {output_file}")
+    
+    # Also save as CSV
+    import csv
+    csv_file = os.path.join(OUTPUT_DIR, 'dictionary.csv')
+    with open(csv_file, 'w', newline='', encoding='utf-8') as f:
+        writer = csv.DictWriter(f, fieldnames=['term', 'definition'])
+        writer.writeheader()
+        writer.writerows(unique)
+    
+    print(f"Saved CSV to {csv_file}")
 
 if __name__ == '__main__':
-    main()
+    scrape_dictionary()
