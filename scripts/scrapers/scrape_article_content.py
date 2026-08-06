@@ -1,29 +1,48 @@
-"""
-Scrape Article Content - Extract article content from legal articles
-"""
-import json
+#!/usr/bin/env python3
+"""Scraper for article/content pages"""
+
 import requests
+import json
 from bs4 import BeautifulSoup
+import time
 
-BASE_URL = "https://www.pls-beta.com"
-
-class ArticleContentScraper:
-    def __init__(self):
-        self.session = requests.Session()
-
-    def scrape_article(self, article_id):
-        url = f"{BASE_URL}/articles/{article_id}"
-        resp = self.session.get(url)
-        soup = BeautifulSoup(resp.text, 'html.parser')
-        return {
-            'id': article_id,
-            'title': soup.select_one('h1').get_text(strip=True) if soup.select_one('h1') else None,
-            'author': soup.select_one('.author').get_text(strip=True) if soup.select_one('.author') else None,
-            'content': soup.select_one('.article-content').get_text(strip=True) if soup.select_one('.article-content') else None,
-            'published_date': soup.select_one('.published-date').get_text(strip=True) if soup.select_one('.published-date') else None,
+def scrape_article(url):
+    """Scrape a single article"""
+    try:
+        response = requests.get(url, timeout=30)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        article = {
+            'url': url,
+            'title': soup.find('h1').text.strip() if soup.find('h1') else '',
+            'author': soup.find('span', class_='author').text.strip() if soup.find('span', class_='author') else '',
+            'date': soup.find('span', class_='date').text.strip() if soup.find('span', class_='date') else '',
+            'content': soup.find('div', class_='article-content').text.strip() if soup.find('div', class_='article-content') else ''
         }
+        return article
+    except Exception as e:
+        print(f"Error scraping {url}: {e}")
+        return None
+
+def scrape_articles(urls):
+    """Scrape multiple articles"""
+    articles = []
+    for url in urls:
+        print(f"Scraping: {url}")
+        article = scrape_article(url)
+        if article:
+            articles.append(article)
+        time.sleep(0.5)
+    return articles
+
+def main():
+    urls = [
+        "https://www.pakistanlawsite.com/articles/1",
+        "https://www.pakistanlawsite.com/articles/2"
+    ]
+    articles = scrape_articles(urls)
+    with open('articles.json', 'w') as f:
+        json.dump(articles, f, indent=2)
 
 if __name__ == '__main__':
-    scraper = ArticleContentScraper()
-    article = scraper.scrape_article('1')
-    print(json.dumps(article, indent=2))
+    main()

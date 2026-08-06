@@ -1,21 +1,37 @@
-"""
-Feed - Routes for activity feed
-"""
+# Feed Route
 from flask import Blueprint, jsonify
 from datetime import datetime
 
 feed_bp = Blueprint('feed', __name__)
 
-FEED_ITEMS = [
-    {"id": 1, "type": "new_case", "title": "New Supreme Court Case", "description": "A new case has been added", "created_at": "2024-01-01T00:00:00Z"},
-    {"id": 2, "type": "update", "title": "Statute Updated", "description": "A statute has been updated", "created_at": "2024-01-02T00:00:00Z"},
-    {"id": 3, "type": "feature", "title": "New Feature", "description": "AI summaries are now available", "created_at": "2024-01-03T00:00:00Z"},
-]
-
-@feed_bp.route('/api/feed', methods=['GET'])
+@feed_bp.route('/feed', methods=['GET'])
 def get_feed():
-    return jsonify({"feed": FEED_ITEMS})
+    """Get activity feed"""
+    feed = {
+        'timestamp': datetime.now().isoformat(),
+        'items': [
+            {
+                'type': 'case_added',
+                'title': 'New Supreme Court Case Added',
+                'description': 'A new constitutional petition has been added to the database',
+                'timestamp': datetime.now().isoformat()
+            },
+            {
+                'type': 'statute_updated',
+                'title': 'Statute Updated',
+                'description': 'Pakistan Penal Code amendments have been incorporated',
+                'timestamp': datetime.now().isoformat()
+            }
+        ]
+    }
+    return jsonify(feed)
 
-@feed_bp.route('/api/feed/recent', methods=['GET'])
+@feed_bp.route('/feed/recent', methods=['GET'])
 def get_recent_feed():
-    return jsonify({"feed": FEED_ITEMS[:5]})
+    """Get recent feed items"""
+    return jsonify({
+        'items': [
+            {'type': 'case', 'count': 15, 'period': '24h'},
+            {'type': 'statute', 'count': 3, 'period': '24h'}
+        ]
+    })

@@ -1,33 +1,40 @@
-"""
-Parse Black's Law - Parse Black's Law Dictionary entries
-"""
-import json
+#!/usr/bin/env python3
+"""Parser for Black's Law Dictionary entries"""
+
 import re
-import sys
+import json
 
 def parse_blacks_law(text):
-    """Parse Black's Law Dictionary text into structured entries."""
-    entries = []
-    # Pattern: TERM (definition...)
-    pattern = r'([A-Z][A-Z\s\-]+)\s+\(([A-Za-z\s\.,;]+)\)'
-    matches = re.findall(pattern, text)
+    """Parse Black's Law Dictionary text format"""
+    entries = {}
+    
+    # Split by entries (each entry starts with a term in uppercase)
+    pattern = r'([A-Z][A-Z\s\-,]+)\s*\n(.*?)(?=\n[A-Z][A-Z\s\-,]+\n|\Z)'
+    matches = re.findall(pattern, text, re.DOTALL)
+    
     for term, definition in matches:
-        entries.append({
-            'term': term.strip(),
-            'definition': definition.strip(),
-        })
+        term = term.strip()
+        definition = definition.strip()
+        if term and definition:
+            entries[term] = definition
+    
     return entries
 
-def process_file(input_file, output_file):
-    with open(input_file, 'r') as f:
+def load_and_parse(filename):
+    """Load file and parse Black's Law entries"""
+    with open(filename, 'r') as f:
         text = f.read()
-    entries = parse_blacks_law(text)
+    return parse_blacks_law(text)
+
+def save_entries(entries, output_file='blacks_law.json'):
+    """Save parsed entries to JSON"""
     with open(output_file, 'w') as f:
         json.dump(entries, f, indent=2)
-    print(f"Parsed {len(entries)} entries to {output_file}")
+    print(f"Saved {len(entries)} entries to {output_file}")
+
+def main():
+    entries = load_and_parse('blacks_law.txt')
+    save_entries(entries)
 
 if __name__ == '__main__':
-    if len(sys.argv) < 3:
-        print("Usage: python parse_blacks_law.py <input.txt> <output.json>")
-        sys.exit(1)
-    process_file(sys.argv[1], sys.argv[2])
+    main()

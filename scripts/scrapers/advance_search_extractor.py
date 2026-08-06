@@ -1,34 +1,53 @@
-"""
-Advance Search Extractor - Extract advanced search results
-"""
-import json
+#!/usr/bin/env python3
+"""Advanced search result extractor"""
+
 import requests
+import json
 from bs4 import BeautifulSoup
+import time
 
-BASE_URL = "https://www.pls-beta.com"
-
-class AdvanceSearchExtractor:
-    def __init__(self):
-        self.session = requests.Session()
-
-    def search(self, query, filters=None):
-        url = f"{BASE_URL}/search"
-        params = {'q': query}
-        if filters:
-            params.update(filters)
-        resp = self.session.get(url, params=params)
-        soup = BeautifulSoup(resp.text, 'html.parser')
+def extract_search_results(search_url, params=None):
+    """Extract search results from advanced search"""
+    try:
+        response = requests.get(search_url, params=params, timeout=30)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
         results = []
-        for item in soup.select('.search-result'):
-            results.append({
-                'title': item.select_one('.title').get_text(strip=True) if item.select_one('.title') else None,
-                'url': item.select_one('a')['href'] if item.select_one('a') else None,
-                'snippet': item.select_one('.snippet').get_text(strip=True) if item.select_one('.snippet') else None,
-                'type': item.select_one('.type').get_text(strip=True) if item.select_one('.type') else None,
-            })
-        return results
+        for item in soup.find_all('div', class_='search-result'):
+            result = {
+                'title': item.find('h3').text.strip() if item.find('h3') else '',
+                'snippet': item.find('div', class_='snippet').text.strip() if item.find('div', class_='snippet') else '',
+                'url': item.find('a')['href'] if item.find('a') else '',
+                'type': item.find('span', class_='result-type').text.strip() if item.find('span', class_='result-type') else ''
+            }
+            results.append(result)
+        
+        return {
+            'results': results,
+            'total': len(results),
+            'page': params.get('page', 1) if params else 1
+        }
+    except Exception as e:
+        print(f"Error extracting search results: {e}")
+        return {'results': [], 'total': 0, 'error': str(e)}
+
+def extract_all_search_results(base_url, query, max_pages=5):
+    """Extract all search results across multiple pages"""
+    all_results = []
+    for page in range(1, max_pages + 1):
+        params = {'q': query, 'page': page}
+        data = extract_search_results(base_url, params)
+        all_results.extend(data['results'])
+        time.sleep(0.5)
+    return all_results
+
+def main():
+    results = extract_all_search_results(
+        'https://www.pakistanlawsite.com/search',
+        'constitutional law'
+    )
+    with open('search_results.json', 'w') as f:
+        json.dump(results, f, indent=2)
 
 if __name__ == '__main__':
-    extractor = AdvanceSearchExtractor()
-    results = extractor.search("property law")
-    print(json.dumps(results, indent=2))
+    main()

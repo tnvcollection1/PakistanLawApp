@@ -1,45 +1,50 @@
-"""
-Mass Content Scraper - Large-scale content scraper for PLS
-"""
-import json
+#!/usr/bin/env python3
+"""Mass content scraper for batch processing"""
+
 import requests
-from bs4 import BeautifulSoup
+import json
 import concurrent.futures
+from bs4 import BeautifulSoup
+import time
 
-BASE_URL = "https://www.pls-beta.com"
+def fetch_content(url, timeout=30):
+    """Fetch content from URL"""
+    try:
+        response = requests.get(url, timeout=timeout)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, 'html.parser')
+        return {
+            'url': url,
+            'title': soup.find('title').text.strip() if soup.find('title') else '',
+            'content': soup.find('body').text.strip() if soup.find('body') else ''
+        }
+    except Exception as e:
+        return {'url': url, 'error': str(e)}
 
-class MassContentScraper:
-    def __init__(self, max_workers=20):
-        self.max_workers = max_workers
+def mass_scrape(urls, max_workers=10):
+    """Scrape multiple URLs in parallel"""
+    results = []
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+        future_to_url = {executor.submit(fetch_content, url): url for url in urls}
+        for future in concurrent.futures.as_completed(future_to_url):
+            result = future.result()
+            results.append(result)
+    return results
 
-    def fetch_content(self, url):
-        try:
-            resp = requests.get(url, timeout=30)
-            if resp.status_code != 200:
-                return None
-            soup = BeautifulSoup(resp.text, 'html.parser')
-            content = soup.select_one('.content')
-            return content.get_text(strip=True) if content else None
-        except Exception as e:
-            return None
+def save_results(results, filename='mass_scrape_results.json'):
+    """Save scraping results"""
+    with open(filename, 'w') as f:
+        json.dump(results, f, indent=2)
+    print(f"Saved {len(results)} results to {filename}")
 
-    def scrape_urls(self, urls):
-        results = {}
-        with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as executor:
-            future_to_url = {executor.submit(self.fetch_content, url): url for url in urls}
-            for future in concurrent.futures.as_completed(future_to_url):
-                url = future_to_url[future]
-                try:
-                    results[url] = future.result()
-                except Exception as e:
-                    print(f"Error for {url}: {e}")
-                    results[url] = None
-        return results
+def main():
+    urls = [
+        "https://www.pakistanlawsite.com/cases/1",
+        "https://www.pakistanlawsite.com/cases/2",
+        "https://www.pakistanlawsite.com/statutes/1"
+    ]
+    results = mass_scrape(urls)
+    save_results(results)
 
 if __name__ == '__main__':
-    scraper = MassContentScraper()
-    urls = [f"{BASE_URL}/cases/{i}" for i in range(1, 11)]
-    results = scraper.scrape_urls(urls)
-    print(f"Fetched content for {len(results)} URLs")
-    with open('mass_content.json', 'w') as f:
-        json.dump(results, f, indent=2)
+    main()

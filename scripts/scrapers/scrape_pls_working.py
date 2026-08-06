@@ -1,45 +1,58 @@
-"""
-Scrape PLS Working - Working PLS scraper with basic functionality
-"""
-import json
+#!/usr/bin/env python3
+"""Working scraper for Pakistan Law Site"""
+
 import requests
+import json
+import time
 from bs4 import BeautifulSoup
 
-BASE_URL = "https://www.pls-beta.com"
+BASE_URL = "https://www.pakistanlawsite.com"
 
-class PLSWorkingScraper:
-    def __init__(self):
-        self.session = requests.Session()
-        self.session.headers.update({
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-        })
+def get_session():
+    """Create a requests session with proper headers"""
+    session = requests.Session()
+    session.headers.update({
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5'
+    })
+    return session
 
-    def scrape_cases(self, page=1):
-        url = f"{BASE_URL}/cases?page={page}"
-        resp = self.session.get(url)
-        soup = BeautifulSoup(resp.text, 'html.parser')
+def scrape_case_list(page=1):
+    """Scrape case list from PLS"""
+    session = get_session()
+    url = f"{BASE_URL}/cases?page={page}"
+    
+    try:
+        response = session.get(url, timeout=30)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
         cases = []
-        for item in soup.select('.case-item'):
-            cases.append({
-                'title': item.select_one('.title').get_text(strip=True) if item.select_one('.title') else None,
-                'url': item.select_one('a')['href'] if item.select_one('a') else None,
-            })
+        for item in soup.find_all('div', class_='case-item'):
+            case = {
+                'title': item.find('h3').text.strip() if item.find('h3') else '',
+                'citation': item.find('span', class_='citation').text.strip() if item.find('span', class_='citation') else '',
+                'date': item.find('span', class_='date').text.strip() if item.find('span', class_='date') else '',
+                'url': item.find('a')['href'] if item.find('a') else ''
+            }
+            cases.append(case)
+        
         return cases
+    except Exception as e:
+        print(f"Error scraping page {page}: {e}")
+        return []
 
-    def scrape_statutes(self, page=1):
-        url = f"{BASE_URL}/statutes?page={page}"
-        resp = self.session.get(url)
-        soup = BeautifulSoup(resp.text, 'html.parser')
-        statutes = []
-        for item in soup.select('.statute-item'):
-            statutes.append({
-                'title': item.select_one('.title').get_text(strip=True) if item.select_one('.title') else None,
-                'url': item.select_one('a')['href'] if item.select_one('a') else None,
-            })
-        return statutes
+def main():
+    all_cases = []
+    for page in range(1, 5):
+        print(f"Scraping page {page}...")
+        cases = scrape_case_list(page)
+        all_cases.extend(cases)
+        time.sleep(1)
+    
+    with open('pls_cases.json', 'w') as f:
+        json.dump(all_cases, f, indent=2)
+    print(f"Scraped {len(all_cases)} cases")
 
 if __name__ == '__main__':
-    scraper = PLSWorkingScraper()
-    cases = scraper.scrape_cases(1)
-    print(f"Scraped {len(cases)} cases")
-    print(json.dumps(cases[:3], indent=2))
+    main()

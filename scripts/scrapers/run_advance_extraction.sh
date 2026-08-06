@@ -1,18 +1,23 @@
 #!/bin/bash
-# Run Advance Extraction - Batch script for advanced case extraction
+# Run advanced extraction scripts
 
-echo "Starting advance extraction..."
+echo "Starting advanced extraction..."
 
-# Extract cases
-python scripts/scrapers/extract_all_cases.py
+# Create output directory
+mkdir -p output
 
-# Fetch missing content
-python scripts/scrapers/fetch_missing_content.py
+# Run extractors
+echo "Running case list extraction..."
+python3 scripts/scrapers/case_list_scraper.py
 
-# Enrich data
-python scripts/scrapers/enrich_caselaw_data.py data/cases.json data/cases_enriched.json
+echo "Running content extraction..."
+python3 scripts/scrapers/mass_content_scraper.py
 
-# Index in Meilisearch
-python scrapers/index_meilisearch.py data/cases_enriched.json
+echo "Running statute extraction..."
+python3 scripts/scrapers/scrape_plsbeta_statute_sections.py
 
-echo "Advance extraction complete!"
+echo "Running legal terms extraction..."
+python3 scripts/scrapers/scrape_legal_terms_complete.py
+
+echo "All extractions complete!"
+echo "Results saved to output/ directory"
