@@ -1,23 +1,22 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 export default function DarkModeToggle() {
-  const [dark, setDark] = React.useState(false);
+  const [darkMode, setDarkMode] = useState(false);
 
-  React.useEffect(() => {
-    if (dark) {
+  useEffect(() => {
+    if (darkMode) {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
-  }, [dark]);
+  }, [darkMode]);
 
   return (
     <button
-      onClick={() => setDark(!dark)}
-      className="p-2 rounded-lg bg-gray-200 dark:bg-gray-800 transition-colors"
-      aria-label="Toggle dark mode"
+      onClick={() => setDarkMode(!darkMode)}
+      className="p-2 rounded-md bg-secondary text-secondary-foreground"
     >
-      {dark ? '☀️' : '🌙'}
+      {darkMode ? 'Light' : 'Dark'} Mode
     </button>
   );
 }
