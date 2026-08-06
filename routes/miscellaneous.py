@@ -1,15 +1,18 @@
-from flask import Blueprint, jsonify, request
-from db import get_db
+from flask import Blueprint, jsonify
 
 misc_bp = Blueprint('misc', __name__)
 
-@misc_bp.route('/api/search', methods=['GET'])
-def search():
-    query = request.args.get('q', '')
-    db = get_db()
-    results = db.judgments.find({"$text": {"$search": query}}).limit(50)
-    return jsonify(list(results))
-
 @misc_bp.route('/api/health', methods=['GET'])
-def health():
-    return jsonify({"status": "ok"})
+def health_check():
+    """Health check endpoint."""
+    return jsonify({'status': 'ok'})
+
+@misc_bp.route('/api/version', methods=['GET'])
+def version():
+    """Get API version."""
+    return jsonify({'version': '1.0.0'})
+
+@misc_bp.route('/api/ping', methods=['GET'])
+def ping():
+    """Simple ping endpoint."""
+    return jsonify({'message': 'pong'})
