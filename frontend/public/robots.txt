@@ -1,5 +1,3 @@
 User-agent: *
 Disallow: /admin/
-Allow: /
-
-Sitemap: https://pakistanlawapp.com/sitemap.xml
+Disallow: /api/
