@@ -1,0 +1,356 @@
+ 
+from fastapi import APIRouter, HTTPException, Depends, Depends, Query
+from fastapi.responses import StreamingResponse, FileResponse
+from typing import Optional
+from datetime import datetime
+from database import db
+from auth_utils import get_current_user
+from bson import ObjectId
+import re
+import io
+import os
+import csv
+
+router = APIRouter()
+
+
+@router.get("/export/case/{case_id}/pdf")
+async def export_case_pdf(case_id: str):
+    case = await db.pls_caselaws.find_one({"case_id": case_id}, {"_id": 0})
+    if not case:
+        raise HTTPException(status_code=404, detail="Case not found")
+
+    content = case.get("full_content", "")
+    parties = case.get("parties", "")
+    court = case.get("court", "")
+    year = case.get("year", "")
+    judge = case.get("judge", "")
+    lawyers = case.get("lawyers", "")
+    headnotes = case.get("headnotes", "") or case.get("headnotes_text", "")
+
+    # Generate proper PDF using reportlab
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import inch
+    from reportlab.lib.colors import HexColor
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, HRFlowable, Table, TableStyle
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4, leftMargin=0.8*inch, rightMargin=0.8*inch,
+                            topMargin=0.6*inch, bottomMargin=0.6*inch)
+
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle('CaseTitle', parent=styles['Heading1'], fontSize=14,
+                                  textColor=HexColor('#1a5632'), spaceAfter=6)
+    meta_style = ParagraphStyle('Meta', parent=styles['Normal'], fontSize=9,
+                                 textColor=HexColor('#555555'), spaceAfter=2)
+    heading_style = ParagraphStyle('SectionHead', parent=styles['Heading2'], fontSize=11,
+                                    textColor=HexColor('#1a5632'), spaceBefore=12, spaceAfter=6)
+    body_style = ParagraphStyle('Body', parent=styles['Normal'], fontSize=9.5,
+                                 leading=13, spaceAfter=4)
+    hn_style = ParagraphStyle('Headnote', parent=styles['Normal'], fontSize=9,
+                                leading=12, leftIndent=12, textColor=HexColor('#333333'))
+    footer_style = ParagraphStyle('Footer', parent=styles['Normal'], fontSize=7,
+                                   textColor=HexColor('#999999'), alignment=1)
+
+    elements = []
+
+    # Header
+    elements.append(Paragraph(f"<b>PAKISTANLAWAPP</b> — Case Export", footer_style))
+    elements.append(Spacer(1, 8))
+    elements.append(HRFlowable(width="100%", thickness=1, color=HexColor('#1a5632')))
+    elements.append(Spacer(1, 8))
+
+    # Case Title
+    safe_parties = parties.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+    elements.append(Paragraph(safe_parties or case_id, title_style))
+    elements.append(Spacer(1, 4))
+
+    # Metadata table
+    meta_data = []
+    if court: meta_data.append(["Court:", court])
+    if year: meta_data.append(["Year:", str(year)])
+    if judge: meta_data.append(["Judge:", judge])
+    if lawyers: meta_data.append(["Counsel:", lawyers[:200]])
+    meta_data.append(["Citation:", case_id])
+
+    if meta_data:
+        t = Table(meta_data, colWidths=[1*inch, 5.2*inch])
+        t.setStyle(TableStyle([
+            ('FONTSIZE', (0, 0), (-1, -1), 9),
+            ('TEXTCOLOR', (0, 0), (0, -1), HexColor('#1a5632')),
+            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+        ]))
+        elements.append(t)
+
+    elements.append(Spacer(1, 8))
+    elements.append(HRFlowable(width="100%", thickness=0.5, color=HexColor('#cccccc')))
+
+    # Headnotes section
+    if headnotes:
+        elements.append(Spacer(1, 6))
+        elements.append(Paragraph("HEADNOTES", heading_style))
+        hn_text = headnotes.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+        for para in hn_text.split('\n'):
+            para = para.strip()
+            if para:
+                elements.append(Paragraph(para, hn_style))
+        elements.append(Spacer(1, 6))
+        elements.append(HRFlowable(width="100%", thickness=0.5, color=HexColor('#cccccc')))
+
+    # Judgment text
+    elements.append(Spacer(1, 6))
+    elements.append(Paragraph("JUDGMENT", heading_style))
+    if content:
+        safe_content = content.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+        for para in safe_content.split('\n'):
+            para = para.strip()
+            if para:
+                elements.append(Paragraph(para, body_style))
+    else:
+        elements.append(Paragraph("Full judgment text not available.", body_style))
+
+    # Footer
+    elements.append(Spacer(1, 16))
+    elements.append(HRFlowable(width="100%", thickness=0.5, color=HexColor('#1a5632')))
+    elements.append(Spacer(1, 4))
+    elements.append(Paragraph(f"Generated by PakistanLawApp | {datetime.now().strftime('%d %b %Y')}", footer_style))
+
+    doc.build(elements)
+    buffer.seek(0)
+
+    return StreamingResponse(
+        buffer,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename={case_id}.pdf"}
+    )
+
+
+@router.get("/export/search/csv")
+async def export_search_csv(
+    q: Optional[str] = None,
+    court: Optional[str] = None,
+    year: Optional[int] = None,
+    year_from: Optional[int] = None,
+    year_to: Optional[int] = None,
+    judge: Optional[str] = None,
+    keyword: Optional[str] = None,
+    limit: int = Query(500, ge=1, le=5000),
+):
+    conditions = []
+    if q:
+        conditions.append({"$or": [
+            {"parties": {"$regex": q, "$options": "i"}},
+            {"petitioner": {"$regex": q, "$options": "i"}},
+            {"respondent": {"$regex": q, "$options": "i"}},
+            {"judge": {"$regex": q, "$options": "i"}},
+            {"full_content": {"$regex": q, "$options": "i"}},
+        ]})
+    if court:
+        conditions.append({"$or": [{"court": {"$regex": court, "$options": "i"}}, {"court_code": court}]})
+    if year:
+        conditions.append({"year": year})
+    if year_from or year_to:
+        yr = {}
+        if year_from:
+            yr["$gte"] = int(year_from)
+        if year_to:
+            yr["$lte"] = int(year_to)
+        conditions.append({"year": yr})
+    if judge:
+        conditions.append({"judge": {"$regex": judge, "$options": "i"}})
+    if keyword:
+        conditions.append({"$or": [
+            {"case_id": {"$regex": keyword, "$options": "i"}},
+            {"parties": {"$regex": keyword, "$options": "i"}},
+        ]})
+
+    query = {"$and": conditions} if len(conditions) > 1 else conditions[0] if conditions else {}
+
+    projection = {"_id": 0, "case_id": 1, "year": 1, "court": 1, "parties": 1, "petitioner": 1, "respondent": 1, "judge": 1, "lawyers": 1}
+    cursor = db.pls_caselaws.find(query, projection).sort("year", -1).limit(limit)
+    results = await cursor.to_list(length=limit)
+
+    output = io.StringIO()
+    writer = csv.DictWriter(output, fieldnames=["case_id", "year", "court", "parties", "petitioner", "respondent", "judge", "lawyers"])
+    writer.writeheader()
+    for r in results:
+        writer.writerow({k: r.get(k, "") for k in writer.fieldnames})
+
+    csv_text = output.getvalue()
+    return StreamingResponse(
+        iter([csv_text.encode("utf-8")]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=search_results.csv"}
+    )
+
+
+@router.get("/pls/caselaws/{case_id}/pdf")
+async def export_caselaw_pdf(case_id: str):
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import inch
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable
+    from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY
+
+    caselaw = None
+    try:
+        caselaw = await db.pls_caselaws.find_one({"_id": ObjectId(case_id)})
+    except Exception:
+        pass
+
+    if not caselaw:
+        caselaw = await db.pls_caselaws.find_one({"case_id": case_id})
+
+    if not caselaw:
+        raise HTTPException(status_code=404, detail="Case law not found")
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=50, leftMargin=50, topMargin=50, bottomMargin=50)
+
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle('CustomTitle', parent=styles['Heading1'], fontSize=16, spaceAfter=20, alignment=TA_CENTER, textColor=colors.HexColor('#00b14f'))
+    heading_style = ParagraphStyle('CustomHeading', parent=styles['Heading2'], fontSize=12, spaceBefore=15, spaceAfter=10, textColor=colors.HexColor('#333333'))
+    body_style = ParagraphStyle('CustomBody', parent=styles['Normal'], fontSize=10, spaceAfter=8, alignment=TA_JUSTIFY)
+
+    story = []
+
+    story.append(Paragraph("PAKISTAN LAWSITE", title_style))
+    story.append(HRFlowable(width="100%", thickness=1, color=colors.HexColor('#00b14f')))
+    story.append(Spacer(1, 20))
+
+    citation = caselaw.get('citation', 'N/A')
+    story.append(Paragraph(f"<b>{citation}</b>", title_style))
+    story.append(Spacer(1, 10))
+
+    case_info = [
+        ['Court:', caselaw.get('court', 'N/A')],
+        ['Judge:', caselaw.get('judge', 'N/A')],
+        ['Case No:', caselaw.get('case_no', 'N/A')],
+        ['Decision Date:', caselaw.get('decision_date', 'N/A')],
+        ['Year:', str(caselaw.get('year', 'N/A'))],
+    ]
+
+    table = Table(case_info, colWidths=[1.5*inch, 4.5*inch])
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#f5f5f5')),
+        ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ('TOPPADDING', (0, 0), (-1, -1), 8),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+    ]))
+    story.append(table)
+    story.append(Spacer(1, 20))
+
+    story.append(Paragraph("PARTIES", heading_style))
+    petitioner = caselaw.get('petitioner', 'N/A')
+    respondent = caselaw.get('respondent', 'N/A')
+    story.append(Paragraph(f"<b>{petitioner}</b>", body_style))
+    story.append(Paragraph("<i>--- versus ---</i>", ParagraphStyle('Center', parent=body_style, alignment=TA_CENTER)))
+    story.append(Paragraph(f"<b>{respondent}</b>", body_style))
+    story.append(Spacer(1, 15))
+
+    statutes = caselaw.get('statutes', [])
+    sections = caselaw.get('sections', [])
+    if statutes or sections:
+        story.append(Paragraph("STATUTES & SECTIONS", heading_style))
+        if statutes:
+            story.append(Paragraph(f"<b>Statutes:</b> {', '.join(statutes)}", body_style))
+        if sections:
+            story.append(Paragraph(f"<b>Sections:</b> {', '.join(sections)}", body_style))
+        story.append(Spacer(1, 15))
+
+    headnotes = caselaw.get('headnotes_text', '')
+    if headnotes:
+        story.append(Paragraph("HEAD NOTES", heading_style))
+        for para in headnotes.split('\n\n'):
+            if para.strip():
+                story.append(Paragraph(para.strip(), body_style))
+        story.append(Spacer(1, 15))
+
+    judgment = caselaw.get('full_case_text', '')
+    if judgment:
+        story.append(Paragraph("JUDGMENT", heading_style))
+        for para in judgment.split('\n\n'):
+            if para.strip():
+                story.append(Paragraph(para.strip(), body_style))
+
+    doc.build(story)
+    buffer.seek(0)
+
+    safe_citation = re.sub(r'[^\w\s-]', '', citation).strip().replace(' ', '_')
+    filename = f"{safe_citation}.pdf"
+
+    return StreamingResponse(
+        buffer,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+
+@router.get("/export/cases")
+async def export_cases_csv():
+    cursor = db.pls_caselaws.find({}, {
+        '_id': 0, 'case_id': 1, 'casename': 1, 'title': 1,
+        'parties': 1, 'citation': 1, 'year': 1, 'court': 1, 'scraped_at': 1
+    })
+    cases = await cursor.to_list(length=200000)
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(['case_id', 'casename', 'title', 'parties', 'citation', 'year', 'court', 'date'])
+
+    for case in cases:
+        citation = case.get('citation', '')
+        if isinstance(citation, dict):
+            citation = f"{citation.get('year', '')} {citation.get('journal', '')} {citation.get('page', '')}"
+
+        writer.writerow([
+            case.get('case_id', ''), case.get('casename', ''), case.get('title', ''),
+            case.get('parties', ''), citation, case.get('year', ''),
+            case.get('court', ''), case.get('scraped_at', '')
+        ])
+
+    output.seek(0)
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=pls_cases_export.csv"}
+    )
+
+
+@router.get("/exports/caselaws/download")
+async def download_caselaws_export():
+    filepath = "/app/backend/production_export/pls_caselaws.zip"
+    if os.path.exists(filepath):
+        return FileResponse(filepath, media_type="application/zip", filename="pls_caselaws_194k.zip")
+    raise HTTPException(status_code=404, detail="Export file not found")
+
+
+@router.get("/exports/info")
+async def get_export_info():
+    filepath = "/app/backend/production_export/pls_caselaws.zip"
+    if os.path.exists(filepath):
+        size_mb = os.path.getsize(filepath) / (1024*1024)
+        return {
+            "file": "pls_caselaws_194k.zip",
+            "size_mb": round(size_mb, 2),
+            "records": 194167,
+            "with_content": 90400,
+            "download_url": "/api/exports/caselaws/download"
+        }
+    return {"error": "Export not available"}
+
+
+@router.get("/exports/chunk/{chunk_num}")
+async def get_chunk(chunk_num: int):
+    filepath = f"/app/backend/exports_chunks/chunk_{chunk_num:02d}.json"
+    if os.path.exists(filepath):
+        return FileResponse(filepath, media_type="application/json")
+    raise HTTPException(status_code=404, detail="Chunk not found")

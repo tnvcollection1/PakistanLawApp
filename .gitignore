@@ -1,0 +1,3868 @@
+# Ignore Python cache and virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.env
+.venv
+env/
+venv/
+
+# Ignore Node modules and build output
+node_modules/
+build/
+dist/
+
+# Ignore OS and editor files
+.DS_Store
+*.swp
+*.swo
+.idea/
+.vscode/
+
+# Ignore logs
+*.log
+
+# Ignore local data and secrets
+data/
+secrets/
+
+# Ignore test coverage
+coverage/
+
+# Ignore temporary files
+tmp/
+temp/
+
+# Ignore Docker artifacts
+*.dockerignore
+Dockerfile*
+!Dockerfile
+
+# Ignore compiled files
+*.compiled
+
+# Ignore local environment files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Ignore lock files (optional, if you prefer to manage versions manually)
+# package-lock.json
+# yarn.lock
+
+# Ignore macOS system files
+.AppleDouble
+.LSOverride
+
+# Ignore Windows system files
+Thumbs.db
+ehthumbs.db
+
+# Ignore npm debug log
+npm-debug.log*
+
+# Ignore yarn error log
+yarn-error.log*
+
+# Ignore parcel-bundler cache
+.cache/
+.parcel-cache/
+
+# Ignore next.js build output
+.next/
+out/
+
+# Ignore Nuxt.js build output
+.nuxt/
+dist/
+
+# Ignore Vuepress build output
+.vuepress/dist
+
+# Ignore Serverless directories
+.serverless/
+
+# Ignore FuseBox cache
+.fusebox/
+
+# Ignore DynamoDB Local files
+.dynamodb/
+
+# Ignore TernJS port file
+.tern-port
+
+# Ignore local history
+.history/
+
+# Ignore IDE settings
+*.iml
+*.ipr
+*.iws
+
+# Ignore Python egg files
+*.egg-info/
+dist/
+build/
+
+# Ignore mypy cache
+.mypy_cache/
+
+# Ignore pytest cache
+.pytest_cache/
+
+# Ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Ignore pipenv
+Pipfile.lock
+
+# Ignore poetry
+poetry.lock
+
+# Ignore local config
+config.local.js
+config.local.json
+
+# Ignore any local override files
+*.local
+
+# Ignore large data exports
+*.csv
+*.xlsx
+*.xls
+
+# Ignore database dumps
+*.sql
+*.dump
+
+# Ignore meilisearch data
+meili_data/
+
+# Ignore uploads
+uploads/
+
+# Ignore static assets (if copied during build)
+# static/
+
+# Ignore storybook build
+storybook-static/
+
+# Ignore coverage reports
+coverage/
+*.lcov
+
+# Ignore lint reports
+lint-reports/
+
+# Ignore generated documentation
+docs/_build/
+
+# Ignore API documentation
+apidoc/
+
+# Ignore test results
+test-results/
+
+# Ignore cypress
+cypress/videos/
+cypress/screenshots/
+
+# Ignore Playwright
+playwright-report/
+test-results/
+
+# Ignore local SSL certificates
+*.pem
+*.key
+*.crt
+
+# Ignore terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+
+# Ignore Kubernetes
+*.kubeconfig
+
+# Ignore any local secrets
+secrets/
+*.secret
+*.secrets
+
+# Ignore local environment overrides
+*.env.override
+
+# Ignore any local configuration overrides
+*.config.override
+
+# Ignore any local data directories
+local_data/
+local/
+
+# Ignore any local scripts
+local_scripts/
+
+# Ignore any local tests
+local_tests/
+
+# Ignore any local documentation
+local_docs/
+
+# Ignore any local examples
+local_examples/
+
+# Ignore any local tools
+local_tools/
+
+# Ignore any local utilities
+local_utilities/
+
+# Ignore any local services
+local_services/
+
+# Ignore any local workers
+local_workers/
+
+# Ignore any local queues
+local_queues/
+
+# Ignore any local caches
+local_cache/
+
+# Ignore any local sessions
+local_sessions/
+
+# Ignore any local uploads
+local_uploads/
+
+# Ignore any local downloads
+local_downloads/
+
+# Ignore any local exports
+local_exports/
+
+# Ignore any local imports
+local_imports/
+
+# Ignore any local backups
+local_backups/
+
+# Ignore any local archives
+local_archives/
+
+# Ignore any local logs
+local_logs/
+
+# Ignore any local temp files
+local_temp/
+
+# Ignore any local scratch files
+local_scratch/
+
+# Ignore any local notes
+local_notes/
+
+# Ignore any local reminders
+local_reminders/
+
+# Ignore any local tasks
+local_tasks/
+
+# Ignore any local todos
+local_todos/
+
+# Ignore any local plans
+local_plans/
+
+# Ignore any local schedules
+local_schedules/
+
+# Ignore any local calendars
+local_calendars/
+
+# Ignore any local events
+local_events/
+
+# Ignore any local meetings
+local_meetings/
+
+# Ignore any local appointments
+local_appointments/
+
+# Ignore any local deadlines
+local_deadlines/
+
+# Ignore any local milestones
+local_milestones/
+
+# Ignore any local goals
+local_goals/
+
+# Ignore any local objectives
+local_objectives/
+
+# Ignore any local targets
+local_targets/
+
+# Ignore any local KPIs
+local_kpis/
+
+# Ignore any local metrics
+local_metrics/
+
+# Ignore any local analytics
+local_analytics/
+
+# Ignore any local reports
+local_reports/
+
+# Ignore any local dashboards
+local_dashboards/
+
+# Ignore any local visualizations
+local_visualizations/
+
+# Ignore any local charts
+local_charts/
+
+# Ignore any local graphs
+local_graphs/
+
+# Ignore any local tables
+local_tables/
+
+# Ignore any local lists
+local_lists/
+
+# Ignore any local directories
+local_directories/
+
+# Ignore any local indexes
+local_indexes/
+
+# Ignore any local catalogs
+local_catalogs/
+
+# Ignore any local registries
+local_registries/
+
+# Ignore any local repositories
+local_repositories/
+
+# Ignore any local databases
+local_databases/
+
+# Ignore any local stores
+local_stores/
+
+# Ignore any local warehouses
+local_warehouses/
+
+# Ignore any local lakes
+local_lakes/
+
+# Ignore any local pools
+local_pools/
+
+# Ignore any local buckets
+local_buckets/
+
+# Ignore any local containers
+local_containers/
+
+# Ignore any local volumes
+local_volumes/
+
+# Ignore any local disks
+local_disks/
+
+# Ignore any local drives
+local_drives/
+
+# Ignore any local partitions
+local_partitions/
+
+# Ignore any local filesystems
+local_filesystems/
+
+# Ignore any local mounts
+local_mounts/
+
+# Ignore any local networks
+local_networks/
+
+# Ignore any local interfaces
+local_interfaces/
+
+# Ignore any local connections
+local_connections/
+
+# Ignore any local sockets
+local_sockets/
+
+# Ignore any local ports
+local_ports/
+
+# Ignore any local protocols
+local_protocols/
+
+# Ignore any local services
+local_services/
+
+# Ignore any local daemons
+local_daemons/
+
+# Ignore any local processes
+local_processes/
+
+# Ignore any local threads
+local_threads/
+
+# Ignore any local workers
+local_workers/
+
+# Ignore any local tasks
+local_tasks/
+
+# Ignore any local jobs
+local_jobs/
+
+# Ignore any local queues
+local_queues/
+
+# Ignore any local stacks
+local_stacks/
+
+# Ignore any local heaps
+local_heaps/
+
+# Ignore any local pools
+local_pools/
+
+# Ignore any local caches
+local_caches/
+
+# Ignore any local buffers
+local_buffers/
+
+# Ignore any local streams
+local_streams/
+
+# Ignore any local pipes
+local_pipes/
+
+# Ignore any local channels
+local_channels/
+
+# Ignore any local buses
+local_buses/
+
+# Ignore any local bridges
+local_bridges/
+
+# Ignore any local routers
+local_routers/
+
+# Ignore any local switches
+local_switches/
+
+# Ignore any local hubs
+local_hubs/
+
+# Ignore any local gateways
+local_gateways/
+
+# Ignore any local proxies
+local_proxies/
+
+# Ignore any local firewalls
+local_firewalls/
+
+# Ignore any local balancers
+local_balancers/
+
+# Ignore any local load balancers
+local_load_balancers/
+
+# Ignore any local caches
+local_caches/
+
+# Ignore any local CDNs
+local_cdns/
+
+# Ignore any local DNS
+local_dns/
+
+# Ignore any local DHCP
+local_dhcp/
+
+# Ignore any local NAT
+local_nat/
+
+# Ignore any local VPN
+local_vpn/
+
+# Ignore any local tunnels
+local_tunnels/
+
+# Ignore any local bridges
+local_bridges/
+
+# Ignore any local VLANs
+local_vlans/
+
+# Ignore any local subnets
+local_subnets/
+
+# Ignore any local IPs
+local_ips/
+
+# Ignore any local MACs
+local_macs/
+
+# Ignore any local ARP
+local_arp/
+
+# Ignore any local routing
+local_routing/
+
+# Ignore any local switching
+local_switching/
+
+# Ignore any local forwarding
+local_forwarding/
+
+# Ignore any local filtering
+local_filtering/
+
+# Ignore any local blocking
+local_blocking/
+
+# Ignore any local allowing
+local_allowing/
+
+# Ignore any local denying
+local_denying/
+
+# Ignore any local rejecting
+local_rejecting/
+
+# Ignore any local dropping
+local_dropping/
+
+# Ignore any local logging
+local_logging/
+
+# Ignore any local monitoring
+local_monitoring/
+
+# Ignore any local alerting
+local_alerting/
+
+# Ignore any local notifying
+local_notifying/
+
+# Ignore any local triggering
+local_triggering/
+
+# Ignore any local scheduling
+local_scheduling/
+
+# Ignore any local orchestrating
+local_orchestrating/
+
+# Ignore any local coordinating
+local_coordinating/
+
+# Ignore any local synchronizing
+local_synchronizing/
+
+# Ignore any local managing
+local_managing/
+
+# Ignore any local controlling
+local_controlling/
+
+# Ignore any local governing
+local_governing/
+
+# Ignore any local regulating
+local_regulating/
+
+# Ignore any local enforcing
+local_enforcing/
+
+# Ignore any local applying
+local_applying/
+
+# Ignore any local implementing
+local_implementing/
+
+# Ignore any local executing
+local_executing/
+
+# Ignore any local running
+local_running/
+
+# Ignore any local operating
+local_operating/
+
+# Ignore any local performing
+local_performing/
+
+# Ignore any local conducting
+local_conducting/
+
+# Ignore any local carrying
+local_carrying/
+
+# Ignore any local holding
+local_holding/
+
+# Ignore any local keeping
+local_keeping/
+
+# Ignore any local maintaining
+local_maintaining/
+
+# Ignore any local preserving
+local_preserving/
+
+# Ignore any local protecting
+local_protecting/
+
+# Ignore any local securing
+local_securing/
+
+# Ignore any local guarding
+local_guarding/
+
+# Ignore any local defending
+local_defending/
+
+# Ignore any local shielding
+local_shielding/
+
+# Ignore any local sheltering
+local_sheltering/
+
+# Ignore any local covering
+local_covering/
+
+# Ignore any local hiding
+local_hiding/
+
+# Ignore any local concealing
+local_concealing/
+
+# Ignore any local masking
+local_masking/
+
+# Ignore any local cloaking
+local_cloaking/
+
+# Ignore any local obscuring
+local_obscuring/
+
+# Ignore any local blurring
+local_blurring/
+
+# Ignore any local distorting
+local_distorting/
+
+# Ignore any local confusing
+local_confusing/
+
+# Ignore any local misleading
+local_misleading/
+
+# Ignore any local deceiving
+local_deceiving/
+
+# Ignore any local tricking
+local_tricking/
+
+# Ignore any local fooling
+local_fooling/
+
+# Ignore any local duping
+local_duping/
+
+# Ignore any local scamming
+local_scamming/
+
+# Ignore any local phishing
+local_phishing/
+
+# Ignore any local spamming
+local_spamming/
+
+# Ignore any local spoofing
+local_spoofing/
+
+# Ignore any local forging
+local_forging/
+
+# Ignore any local faking
+local_faking/
+
+# Ignore any local counterfeiting
+local_counterfeiting/
+
+# Ignore any local imitating
+local_imitating/
+
+# Ignore any local mimicking
+local_mimicking/
+
+# Ignore any local emulating
+local_emulating/
+
+# Ignore any local simulating
+local_simulating/
+
+# Ignore any local replicating
+local_replicating/
+
+# Ignore any local copying
+local_copying/
+
+# Ignore any local duplicating
+local_duplicating/
+
+# Ignore any local cloning
+local_cloning/
+
+# Ignore any local mirroring
+local_mirroring/
+
+# Ignore any local backing
+local_backing/
+
+# Ignore any local restoring
+local_restoring/
+
+# Ignore any local recovering
+local_recovering/
+
+# Ignore any local healing
+local_healing/
+
+# Ignore any local fixing
+local_fixing/
+
+# Ignore any local repairing
+local_repairing/
+
+# Ignore any local patching
+local_patching/
+
+# Ignore any local updating
+local_updating/
+
+# Ignore any local upgrading
+local_upgrading/
+
+# Ignore any local migrating
+local_migrating/
+
+# Ignore any local moving
+local_moving/
+
+# Ignore any local transferring
+local_transferring/
+
+# Ignore any local transporting
+local_transporting/
+
+# Ignore any local shipping
+local_shipping/
+
+# Ignore any local delivering
+local_delivering/
+
+# Ignore any local distributing
+local_distributing/
+
+# Ignore any local sharing
+local_sharing/
+
+# Ignore any local sending
+local_sending/
+
+# Ignore any local receiving
+local_receiving/
+
+# Ignore any local accepting
+local_accepting/
+
+# Ignore any local taking
+local_taking/
+
+# Ignore any local grabbing
+local_grabbing/
+
+# Ignore any local catching
+local_catching/
+
+# Ignore any local capturing
+local_capturing/
+
+# Ignore any local collecting
+local_collecting/
+
+# Ignore any local gathering
+local_gathering/
+
+# Ignore any local assembling
+local_assembling/
+
+# Ignore any local compiling
+local_compiling/
+
+# Ignore any local building
+local_building/
+
+# Ignore any local constructing
+local_constructing/
+
+# Ignore any local creating
+local_creating/
+
+# Ignore any local making
+local_making/
+
+# Ignore any local producing
+local_producing/
+
+# Ignore any local generating
+local_generating/
+
+# Ignore any local forming
+local_forming/
+
+# Ignore any local shaping
+local_shaping/
+
+# Ignore any local molding
+local_molding/
+
+# Ignore any local casting
+local_casting/
+
+# Ignore any local forging
+local_forging/
+
+# Ignore any local fabricating
+local_fabricating/
+
+# Ignore any local manufacturing
+local_manufacturing/
+
+# Ignore any local crafting
+local_crafting/
+
+# Ignore any local designing
+local_designing/
+
+# Ignore any local drafting
+local_drafting/
+
+# Ignore any local drawing
+local_drawing/
+
+# Ignore any local sketching
+local_sketching/
+
+# Ignore any local outlining
+local_outlining/
+
+# Ignore any local planning
+local_planning/
+
+# Ignore any local scheming
+local_scheming/
+
+# Ignore any local plotting
+local_plotting/
+
+# Ignore any local conspiring
+local_conspiring/
+
+# Ignore any local colluding
+local_colluding/
+
+# Ignore any local scheming
+local_scheming/
+
+# Ignore any local machinating
+local_machinating/
+
+# Ignore any local manipulating
+local_manipulating/
+
+# Ignore any local engineering
+local_engineering/
+
+# Ignore any local architecting
+local_architecting/
+
+# Ignore any local structuring
+local_structuring/
+
+# Ignore any local organizing
+local_organizing/
+
+# Ignore any local arranging
+local_arranging/
+
+# Ignore any local ordering
+local_ordering/
+
+# Ignore any local sorting
+local_sorting/
+
+# Ignore any local categorizing
+local_categorizing/
+
+# Ignore any local classifying
+local_classifying/
+
+# Ignore any local grouping
+local_grouping/
+
+# Ignore any local clustering
+local_clustering/
+
+# Ignore any local segmenting
+local_segmenting/
+
+# Ignore any local partitioning
+local_partitioning/
+
+# Ignore any local dividing
+local_dividing/
+
+# Ignore any local splitting
+local_splitting/
+
+# Ignore any local separating
+local_separating/
+
+# Ignore any local isolating
+local_isolating/
+
+# Ignore any local extracting
+local_extracting/
+
+# Ignore any local pulling
+local_pulling/
+
+# Ignore any local drawing
+local_drawing/
+
+# Ignore any local deriving
+local_deriving/
+
+# Ignore any local obtaining
+local_obtaining/
+
+# Ignore any local acquiring
+local_acquiring/
+
+# Ignore any local getting
+local_getting/
+
+# Ignore any local fetching
+local_fetching/
+
+# Ignore any local retrieving
+local_retrieving/
+
+# Ignore any local reading
+local_reading/
+
+# Ignore any local loading
+local_loading/
+
+# Ignore any local parsing
+local_parsing/
+
+# Ignore any local interpreting
+local_interpreting/
+
+# Ignore any local translating
+local_translating/
+
+# Ignore any local converting
+local_converting/
+
+# Ignore any local transforming
+local_transforming/
+
+# Ignore any local transcoding
+local_transcoding/
+
+# Ignore any local encoding
+local_encoding/
+
+# Ignore any local decoding
+local_decoding/
+
+# Ignore any local encrypting
+local_encrypting/
+
+# Ignore any local decrypting
+local_decrypting/
+
+# Ignore any local hashing
+local_hashing/
+
+# Ignore any local signing
+local_signing/
+
+# Ignore any local verifying
+local_verifying/
+
+# Ignore any local validating
+local_validating/
+
+# Ignore any local checking
+local_checking/
+
+# Ignore any local testing
+local_testing/
+
+# Ignore any local trying
+local_trying/
+
+# Ignore any local attempting
+local_attempting/
+
+# Ignore any local endeavoring
+local_endeavoring/
+
+# Ignore any local striving
+local_striving/
+
+# Ignore any local struggling
+local_struggling/
+
+# Ignore any local fighting
+local_fighting/
+
+# Ignore any local battling
+local_battling/
+
+# Ignore any local combating
+local_combating/
+
+# Ignore any local resisting
+local_resisting/
+
+# Ignore any local opposing
+local_opposing/
+
+# Ignore any local challenging
+local_challenging/
+
+# Ignore any local confronting
+local_confronting/
+
+# Ignore any local facing
+local_facing/
+
+# Ignore any local encountering
+local_encountering/
+
+# Ignore any local meeting
+local_meeting/
+
+# Ignore any local greeting
+local_greeting/
+
+# Ignore any local welcoming
+local_welcoming/
+
+# Ignore any local receiving
+local_receiving/
+
+# Ignore any local hosting
+local_hosting/
+
+# Ignore any local serving
+local_serving/
+
+# Ignore any local providing
+local_providing/
+
+# Ignore any local supplying
+local_supplying/
+
+# Ignore any local furnishing
+local_furnishing/
+
+# Ignore any local equipping
+local_equipping/
+
+# Ignore any local arming
+local_arming/
+
+# Ignore any local preparing
+local_preparing/
+
+# Ignore any local readying
+local_readying/
+
+# Ignore any local setting
+local_setting/
+
+# Ignore any local placing
+local_placing/
+
+# Ignore any local positioning
+local_positioning/
+
+# Ignore any local locating
+local_locating/
+
+# Ignore any local situating
+local_situating/
+
+# Ignore any local installing
+local_installing/
+
+# Ignore any local deploying
+local_deploying/
+
+# Ignore any local launching
+local_launching/
+
+# Ignore any local starting
+local_starting/
+
+# Ignore any local beginning
+local_beginning/
+
+# Ignore any local initiating
+local_initiating/
+
+# Ignore any local commencing
+local_commencing/
+
+# Ignore any local originating
+local_originating/
+
+# Ignore any local creating
+local_creating/
+
+# Ignore any local inventing
+local_inventing/
+
+# Ignore any local discovering
+local_discovering/
+
+# Ignore any local finding
+local_finding/
+
+# Ignore any local locating
+local_locating/
+
+# Ignore any local detecting
+local_detecting/
+
+# Ignore any local sensing
+local_sensing/
+
+# Ignore any local perceiving
+local_perceiving/
+
+# Ignore any local observing
+local_observing/
+
+# Ignore any local watching
+local_watching/
+
+# Ignore any local viewing
+local_viewing/
+
+# Ignore any local looking
+local_looking/
+
+# Ignore any local seeing
+local_seeing/
+
+# Ignore any local sighting
+local_sighting/
+
+# Ignore any local spotting
+local_spotting/
+
+# Ignore any local noticing
+local_noticing/
+
+# Ignore any local noting
+local_noting/
+
+# Ignore any local marking
+local_marking/
+
+# Ignore any local tagging
+local_tagging/
+
+# Ignore any local labeling
+local_labeling/
+
+# Ignore any local naming
+local_naming/
+
+# Ignore any local titling
+local_titling/
+
+# Ignore any local calling
+local_calling/
+
+# Ignore any local terming
+local_terming/
+
+# Ignore any local dubbing
+local_dubbing/
+
+# Ignore any local christening
+local_christening/
+
+# Ignore any local baptizing
+local_baptizing/
+
+# Ignore any local initiating
+local_initiating/
+
+# Ignore any local inducting
+local_inducting/
+
+# Ignore any local enrolling
+local_enrolling/
+
+# Ignore any local registering
+local_registering/
+
+# Ignore any local enlisting
+local_enlisting/
+
+# Ignore any local recruiting
+local_recruiting/
+
+# Ignore any local hiring
+local_hiring/
+
+# Ignore any local employing
+local_employing/
+
+# Ignore any local engaging
+local_engaging/
+
+# Ignore any local contracting
+local_contracting/
+
+# Ignore any local commissioning
+local_commissioning/
+
+# Ignore any local appointing
+local_appointing/
+
+# Ignore any local assigning
+local_assigning/
+
+# Ignore any local delegating
+local_delegating/
+
+# Ignore any local nominating
+local_nominating/
+
+# Ignore any local electing
+local_electing/
+
+# Ignore any local voting
+local_voting/
+
+# Ignore any local choosing
+local_choosing/
+
+# Ignore any local selecting
+local_selecting/
+
+# Ignore any local picking
+local_picking/
+
+# Ignore any local opting
+local_opting/
+
+# Ignore any local preferring
+local_preferring/
+
+# Ignore any local favoring
+local_favoring/
+
+# Ignore any local liking
+local_liking/
+
+# Ignore any local loving
+local_loving/
+
+# Ignore any local adoring
+local_adoring/
+
+# Ignore any local worshiping
+local_worshiping/
+
+# Ignore any local idolizing
+local_idolizing/
+
+# Ignore any local admiring
+local_admiring/
+
+# Ignore any local respecting
+local_respecting/
+
+# Ignore any local honoring
+local_honoring/
+
+# Ignore any local esteeming
+local_esteeming/
+
+# Ignore any local valuing
+local_valuing/
+
+# Ignore any local treasuring
+local_treasuring/
+
+# Ignore any local cherishing
+local_cherishing/
+
+# Ignore any local appreciating
+local_appreciating/
+
+# Ignore any local enjoying
+local_enjoying/
+
+# Ignore any local relishing
+local_relishing/
+
+# Ignore any local savoring
+local_savoring/
+
+# Ignore any local delighting
+local_delighting/
+
+# Ignore any local reveling
+local_reveling/
+
+# Ignore any local indulging
+local_indulging/
+
+# Ignore any local pampering
+local_pampering/
+
+# Ignore any local spoiling
+local_spoiling/
+
+# Ignore any local catering
+local_catering/
+
+# Ignore any local serving
+local_serving/
+
+# Ignore any local attending
+local_attending/
+
+# Ignore any local assisting
+local_assisting/
+
+# Ignore any local helping
+local_helping/
+
+# Ignore any local aiding
+local_aiding/
+
+# Ignore any local supporting
+local_supporting/
+
+# Ignore any local backing
+local_backing/
+
+# Ignore any local promoting
+local_promoting/
+
+# Ignore any local advocating
+local_advocating/
+
+# Ignore any local recommending
+local_recommending/
+
+# Ignore any local suggesting
+local_suggesting/
+
+# Ignore any local proposing
+local_proposing/
+
+# Ignore any local offering
+local_offering/
+
+# Ignore any local giving
+local_giving/
+
+# Ignore any local donating
+local_donating/
+
+# Ignore any local contributing
+local_contributing/
+
+# Ignore any local granting
+local_granting/
+
+# Ignore any local awarding
+local_awarding/
+
+# Ignore any local bestowing
+local_bestowing/
+
+# Ignore any local conferring
+local_conferring/
+
+# Ignore any local presenting
+local_presenting/
+
+# Ignore any local handing
+local_handing/
+
+# Ignore any local passing
+local_passing/
+
+# Ignore any local transferring
+local_transferring/
+
+# Ignore any local conveying
+local_conveying/
+
+# Ignore any local communicating
+local_communicating/
+
+# Ignore any local informing
+local_informing/
+
+# Ignore any local telling
+local_telling/
+
+# Ignore any local notifying
+local_notifying/
+
+# Ignore any local alerting
+local_alerting/
+
+# Ignore any local warning
+local_warning/
+
+# Ignore any local cautioning
+local_cautioning/
+
+# Ignore any local advising
+local_advising/
+
+# Ignore any local counseling
+local_counseling/
+
+# Ignore any local guiding
+local_guiding/
+
+# Ignore any local directing
+local_directing/
+
+# Ignore any local instructing
+local_instructing/
+
+# Ignore any local teaching
+local_teaching/
+
+# Ignore any local educating
+local_educating/
+
+# Ignore any local training
+local_training/
+
+# Ignore any local coaching
+local_coaching/
+
+# Ignore any local mentoring
+local_mentoring/
+
+# Ignore any local tutoring
+local_tutoring/
+
+# Ignore any local schooling
+local_schooling/
+
+# Ignore any local instructing
+local_instructing/
+
+# Ignore any local enlightening
+local_enlightening/
+
+# Ignore any local illuminating
+local_illuminating/
+
+# Ignore any local clarifying
+local_clarifying/
+
+# Ignore any local explaining
+local_explaining/
+
+# Ignore any local explicating
+local_explicating/
+
+# Ignore any local elaborating
+local_elaborating/
+
+# Ignore any local detailing
+local_detailing/
+
+# Ignore any local specifying
+local_specifying/
+
+# Ignore any local particularizing
+local_particularizing/
+
+# Ignore any local itemizing
+local_itemizing/
+
+# Ignore any local listing
+local_listing/
+
+# Ignore any local enumerating
+local_enumerating/
+
+# Ignore any local cataloging
+local_cataloging/
+
+# Ignore any local indexing
+local_indexing/
+
+# Ignore any local referencing
+local_referencing/
+
+# Ignore any local citing
+local_citing/
+
+# Ignore any local quoting
+local_quoting/
+
+# Ignore any local excerpting
+local_excerpting/
+
+# Ignore any local abstracting
+local_abstracting/
+
+# Ignore any local summarizing
+local_summarizing/
+
+# Ignore any local condensing
+local_condensing/
+
+# Ignore any local compressing
+local_compressing/
+
+# Ignore any local compacting
+local_compacting/
+
+# Ignore any local consolidating
+local_consolidating/
+
+# Ignore any local unifying
+local_unifying/
+
+# Ignore any local integrating
+local_integrating/
+
+# Ignore any local combining
+local_combining/
+
+# Ignore any local merging
+local_merging/
+
+# Ignore any local fusing
+local_fusing/
+
+# Ignore any local blending
+local_blending/
+
+# Ignore any local mixing
+local_mixing/
+
+# Ignore any local stirring
+local_stirring/
+
+# Ignore any local shaking
+local_shaking/
+
+# Ignore any local agitating
+local_agitating/
+
+# Ignore any local disturbing
+local_disturbing/
+
+# Ignore any local perturbing
+local_perturbing/
+
+# Ignore any local disrupting
+local_disrupting/
+
+# Ignore any local interrupting
+local_interrupting/
+
+# Ignore any local interfering
+local_interfering/
+
+# Ignore any local meddling
+local_meddling/
+
+# Ignore any local tampering
+local_tampering/
+
+# Ignore any local altering
+local_altering/
+
+# Ignore any local changing
+local_changing/
+
+# Ignore any local modifying
+local_modifying/
+
+# Ignore any local adjusting
+local_adjusting/
+
+# Ignore any local adapting
+local_adapting/
+
+# Ignore any local tailoring
+local_tailoring/
+
+# Ignore any local customizing
+local_customizing/
+
+# Ignore any local personalizing
+local_personalizing/
+
+# Ignore any local individualizing
+local_individualizing/
+
+# Ignore any local specializing
+local_specializing/
+
+# Ignore any local particularizing
+local_particularizing/
+
+# Ignore any local differentiating
+local_differentiating/
+
+# Ignore any local distinguishing
+local_distinguishing/
+
+# Ignore any local discriminating
+local_discriminating/
+
+# Ignore any local discerning
+local_discerning/
+
+# Ignore any local recognizing
+local_recognizing/
+
+# Ignore any local identifying
+local_identifying/
+
+# Ignore any local pinpointing
+local_pinpointing/
+
+# Ignore any local diagnosing
+local_diagnosing/
+
+# Ignore any local analyzing
+local_analyzing/
+
+# Ignore any local examining
+local_examining/
+
+# Ignore any local inspecting
+local_inspecting/
+
+# Ignore any local investigating
+local_investigating/
+
+# Ignore any local exploring
+local_exploring/
+
+# Ignore any local probing
+local_probing/
+
+# Ignore any local querying
+local_querying/
+
+# Ignore any local questioning
+local_questioning/
+
+# Ignore any local interrogating
+local_interrogating/
+
+# Ignore any local inquiring
+local_inquiring/
+
+# Ignore any local requesting
+local_requesting/
+
+# Ignore any local asking
+local_asking/
+
+# Ignore any local demanding
+local_demanding/
+
+# Ignore any local requiring
+local_requiring/
+
+# Ignore any local needing
+local_needing/
+
+# Ignore any local wanting
+local_wanting/
+
+# Ignore any local desiring
+local_desiring/
+
+# Ignore any local wishing
+local_wishing/
+
+# Ignore any local hoping
+local_hoping/
+
+# Ignore any local expecting
+local_expecting/
+
+# Ignore any local anticipating
+local_anticipating/
+
+# Ignore any local awaiting
+local_awaiting/
+
+# Ignore any local watching
+local_watching/
+
+# Ignore any local looking
+local_looking/
+
+# Ignore any local searching
+local_searching/
+
+# Ignore any local seeking
+local_seeking/
+
+# Ignore any local hunting
+local_hunting/
+
+# Ignore any local pursuing
+local_pursuing/
+
+# Ignore any local chasing
+local_chasing/
+
+# Ignore any local following
+local_following/
+
+# Ignore any local tracking
+local_tracking/
+
+# Ignore any local trailing
+local_trailing/
+
+# Ignore any local stalking
+local_stalking/
+
+# Ignore any local shadowing
+local_shadowing/
+
+# Ignore any local tailing
+local_tailing/
+
+# Ignore any local accompanying
+local_accompanying/
+
+# Ignore any local escorting
+local_escorting/
+
+# Ignore any local guiding
+local_guiding/
+
+# Ignore any local leading
+local_leading/
+
+# Ignore any local directing
+local_directing/
+
+# Ignore any local steering
+local_steering/
+
+# Ignore any local piloting
+local_piloting/
+
+# Ignore any local navigating
+local_navigating/
+
+# Ignore any local sailing
+local_sailing/
+
+# Ignore any local cruising
+local_cruising/
+
+# Ignore any local voyaging
+local_voyaging/
+
+# Ignore any local journeying
+local_journeying/
+
+# Ignore any local traveling
+local_traveling/
+
+# Ignore any local touring
+local_touring/
+
+# Ignore any local visiting
+local_visiting/
+
+# Ignore any local calling
+local_calling/
+
+# Ignore any local phoning
+local_phoning/
+
+# Ignore any local ringing
+local_ringing/
+
+# Ignore any local dialing
+local_dialing/
+
+# Ignore any local answering
+local_answering/
+
+# Ignore any local responding
+local_responding/
+
+# Ignore any local replying
+local_replying/
+
+# Ignore any local reacting
+local_reacting/
+
+# Ignore any local acting
+local_acting/
+
+# Ignore any local behaving
+local_behaving/
+
+# Ignore any local performing
+local_performing/
+
+# Ignore any local conducting
+local_conducting/
+
+# Ignore any local carrying
+local_carrying/
+
+# Ignore any local bearing
+local_bearing/
+
+# Ignore any local holding
+local_holding/
+
+# Ignore any local keeping
+local_keeping/
+
+# Ignore any local retaining
+local_retaining/
+
+# Ignore any local maintaining
+local_maintaining/
+
+# Ignore any local sustaining
+local_sustaining/
+
+# Ignore any local supporting
+local_supporting/
+
+# Ignore any local upholding
+local_upholding/
+
+# Ignore any local preserving
+local_preserving/
+
+# Ignore any local conserving
+local_conserving/
+
+# Ignore any local saving
+local_saving/
+
+# Ignore any local storing
+local_storing/
+
+# Ignore any local stashing
+local_stashing/
+
+# Ignore any local hoarding
+local_hoarding/
+
+# Ignore any local accumulating
+local_accumulating/
+
+# Ignore any local amassing
+local_amassing/
+
+# Ignore any local collecting
+local_collecting/
+
+# Ignore any local gathering
+local_gathering/
+
+# Ignore any local assembling
+local_assembling/
+
+# Ignore any local congregating
+local_congregating/
+
+# Ignore any local convening
+local_convening/
+
+# Ignore any local summoning
+local_summoning/
+
+# Ignore any local calling
+local_calling/
+
+# Ignore any local inviting
+local_inviting/
+
+# Ignore any local beckoning
+local_beckoning/
+
+# Ignore any local signaling
+local_signaling/
+
+# Ignore any local gesturing
+local_gesturing/
+
+# Ignore any local waving
+local_waving/
+
+# Ignore any local nodding
+local_nodding/
+
+# Ignore any local pointing
+local_pointing/
+
+# Ignore any local indicating
+local_indicating/
+
+# Ignore any local showing
+local_showing/
+
+# Ignore any local displaying
+local_displaying/
+
+# Ignore any local exhibiting
+local_exhibiting/
+
+# Ignore any local demonstrating
+local_demonstrating/
+
+# Ignore any local manifesting
+local_manifesting/
+
+# Ignore any local expressing
+local_expressing/
+
+# Ignore any local conveying
+local_conveying/
+
+# Ignore any local communicating
+local_communicating/
+
+# Ignore any local articulating
+local_articulating/
+
+# Ignore any local voicing
+local_voicing/
+
+# Ignore any local uttering
+local_uttering/
+
+# Ignore any local speaking
+local_speaking/
+
+# Ignore any local talking
+local_talking/
+
+# Ignore any local conversing
+local_conversing/
+
+# Ignore any local discussing
+local_discussing/
+
+# Ignore any local debating
+local_debating/
+
+# Ignore any local arguing
+local_arguing/
+
+# Ignore any local disputing
+local_disputing/
+
+# Ignore any local contending
+local_contending/
+
+# Ignore any local conflicting
+local_conflicting/
+
+# Ignore any local clashing
+local_clashing/
+
+# Ignore any local colliding
+local_colliding/
+
+# Ignore any local crashing
+local_crashing/
+
+# Ignore any local smashing
+local_smashing/
+
+# Ignore any local breaking
+local_breaking/
+
+# Ignore any local shattering
+local_shattering/
+
+# Ignore any local cracking
+local_cracking/
+
+# Ignore any local splitting
+local_splitting/
+
+# Ignore any local tearing
+local_tearing/
+
+# Ignore any local ripping
+local_ripping/
+
+# Ignore any local shredding
+local_shredding/
+
+# Ignore any local cutting
+local_cutting/
+
+# Ignore any local slicing
+local_slicing/
+
+# Ignore any local dicing
+local_dicing/
+
+# Ignore any local chopping
+local_chopping/
+
+# Ignore any local mincing
+local_mincing/
+
+# Ignore any local grinding
+local_grinding/
+
+# Ignore any local crushing
+local_crushing/
+
+# Ignore any local pulverizing
+local_pulverizing/
+
+# Ignore any local powdering
+local_powdering/
+
+# Ignore any local granulating
+local_granulating/
+
+# Ignore any local milling
+local_milling/
+
+# Ignore any local processing
+local_processing/
+
+# Ignore any local treating
+local_treating/
+
+# Ignore any local handling
+local_handling/
+
+# Ignore any local managing
+local_managing/
+
+# Ignore any local controlling
+local_controlling/
+
+# Ignore any local operating
+local_operating/
+
+# Ignore any local running
+local_running/
+
+# Ignore any local driving
+local_driving/
+
+# Ignore any local riding
+local_riding/
+
+# Ignore any local flying
+local_flying/
+
+# Ignore any local sailing
+local_sailing/
+
+# Ignore any local boating
+local_boating/
+
+# Ignore any local rowing
+local_rowing/
+
+# Ignore any local paddling
+local_paddling/
+
+# Ignore any local swimming
+local_swimming/
+
+# Ignore any local diving
+local_diving/
+
+# Ignore any local sinking
+local_sinking/
+
+# Ignore any local floating
+local_floating/
+
+# Ignore any local drifting
+local_drifting/
+
+# Ignore any local gliding
+local_gliding/
+
+# Ignore any local sliding
+local_sliding/
+
+# Ignore any local slipping
+local_slipping/
+
+# Ignore any local skidding
+local_skidding/
+
+# Ignore any local falling
+local_falling/
+
+# Ignore any local dropping
+local_dropping/
+
+# Ignore any local descending
+local_descending/
+
+# Ignore any local plunging
+local_plunging/
+
+# Ignore any local diving
+local_diving/
+
+# Ignore any local tumbling
+local_tumbling/
+
+# Ignore any local stumbling
+local_stumbling/
+
+# Ignore any local tripping
+local_tripping/
+
+# Ignore any local toppling
+local_toppling/
+
+# Ignore any local collapsing
+local_collapsing/
+
+# Ignore any local falling
+local_falling/
+
+# Ignore any local failing
+local_failing/
+
+# Ignore any local declining
+local_declining/
+
+# Ignore any local deteriorating
+local_deteriorating/
+
+# Ignore any local degrading
+local_degrading/
+
+# Ignore any local worsening
+local_worsening/
+
+# Ignore any local aggravating
+local_aggravating/
+
+# Ignore any local intensifying
+local_intensifying/
+
+# Ignore any local heightening
+local_heightening/
+
+# Ignore any local increasing
+local_increasing/
+
+# Ignore any local augmenting
+local_augmenting/
+
+# Ignore any local amplifying
+local_amplifying/
+
+# Ignore any local magnifying
+local_magnifying/
+
+# Ignore any local enlarging
+local_enlarging/
+
+# Ignore any local expanding
+local_expanding/
+
+# Ignore any local extending
+local_extending/
+
+# Ignore any local stretching
+local_stretching/
+
+# Ignore any local spreading
+local_spreading/
+
+# Ignore any local scattering
+local_scattering/
+
+# Ignore any local dispersing
+local_dispersing/
+
+# Ignore any local distributing
+local_distributing/
+
+# Ignore any local disseminating
+local_disseminating/
+
+# Ignore any local propagating
+local_propagating/
+
+# Ignore any local transmitting
+local_transmitting/
+
+# Ignore any local broadcasting
+local_broadcasting/
+
+# Ignore any local publishing
+local_publishing/
+
+# Ignore any local issuing
+local_issuing/
+
+# Ignore any local releasing
+local_releasing/
+
+# Ignore any local launching
+local_launching/
+
+# Ignore any local introducing
+local_introducing/
+
+# Ignore any local presenting
+local_presenting/
+
+# Ignore any local debuting
+local_debuting/
+
+# Ignore any local premiering
+local_premiering/
+
+# Ignore any local unveiling
+local_unveiling/
+
+# Ignore any local disclosing
+local_disclosing/
+
+# Ignore any local revealing
+local_revealing/
+
+# Ignore any local exposing
+local_exposing/
+
+# Ignore any local uncovering
+local_uncovering/
+
+# Ignore any local unmasking
+local_unmasking/
+
+# Ignore any local stripping
+local_stripping/
+
+# Ignore any local baring
+local_baring/
+
+# Ignore any local denuding
+local_denuding/
+
+# Ignore any local divesting
+local_divesting/
+
+# Ignore any local depriving
+local_depriving/
+
+# Ignore any local dispossessing
+local_dispossessing/
+
+# Ignore any local robbing
+local_robbing/
+
+# Ignore any local stealing
+local_stealing/
+
+# Ignore any local thieving
+local_thieving/
+
+# Ignore any local pilfering
+local_pilfering/
+
+# Ignore any local looting
+local_looting/
+
+# Ignore any local plundering
+local_plundering/
+
+# Ignore any local sacking
+local_sacking/
+
+# Ignore any local raiding
+local_raiding/
+
+# Ignore any local ransacking
+local_ransacking/
+
+# Ignore any local ravaging
+local_ravaging/
+
+# Ignore any local devastating
+local_devastating/
+
+# Ignore any local destroying
+local_destroying/
+
+# Ignore any local demolishing
+local_demolishing/
+
+# Ignore any local wrecking
+local_wrecking/
+
+# Ignore any local ruining
+local_ruining/
+
+# Ignore any local annihilating
+local_annihilating/
+
+# Ignore any local obliterating
+local_obliterating/
+
+# Ignore any local eradicating
+local_eradicating/
+
+# Ignore any local exterminating
+local_exterminating/
+
+# Ignore any local eliminating
+local_eliminating/
+
+# Ignore any local removing
+local_removing/
+
+# Ignore any local erasing
+local_erasing/
+
+# Ignore any local deleting
+local_deleting/
+
+# Ignore any local expunging
+local_expunging/
+
+# Ignore any local purging
+local_purging/
+
+# Ignore any local cleansing
+local_cleansing/
+
+# Ignore any local clearing
+local_clearing/
+
+# Ignore any local cleaning
+local_cleaning/
+
+# Ignore any local washing
+local_washing/
+
+# Ignore any local scrubbing
+local_scrubbing/
+
+# Ignore any local polishing
+local_polishing/
+
+# Ignore any local shining
+local_shining/
+
+# Ignore any local buffing
+local_buffing/
+
+# Ignore any local burnishing
+local_burnishing/
+
+# Ignore any local refining
+local_refining/
+
+# Ignore any local purifying
+local_purifying/
+
+# Ignore any local filtering
+local_filtering/
+
+# Ignore any local straining
+local_straining/
+
+# Ignore any local sifting
+local_sifting/
+
+# Ignore any local sorting
+local_sorting/
+
+# Ignore any local screening
+local_screening/
+
+# Ignore any local sieving
+local_sieving/
+
+# Ignore any local filtering
+local_filtering/
+
+# Ignore any local refining
+local_refining/
+
+# Ignore any local distilling
+local_distilling/
+
+# Ignore any local extracting
+local_extracting/
+
+# Ignore any local drawing
+local_drawing/
+
+# Ignore any local deriving
+local_deriving/
+
+# Ignore any local obtaining
+local_obtaining/
+
+# Ignore any local acquiring
+local_acquiring/
+
+# Ignore any local getting
+local_getting/
+
+# Ignore any local procuring
+local_procuring/
+
+# Ignore any local securing
+local_securing/
+
+# Ignore any local attaining
+local_attaining/
+
+# Ignore any local achieving
+local_achieving/
+
+# Ignore any local accomplishing
+local_accomplishing/
+
+# Ignore any local fulfilling
+local_fulfilling/
+
+# Ignore any local completing
+local_completing/
+
+# Ignore any local finishing
+local_finishing/
+
+# Ignore any local concluding
+local_concluding/
+
+# Ignore any local ending
+local_ending/
+
+# Ignore any local closing
+local_closing/
+
+# Ignore any local terminating
+local_terminating/
+
+# Ignore any local finalizing
+local_finalizing/
+
+# Ignore any local settling
+local_settling/
+
+# Ignore any local resolving
+local_resolving/
+
+# Ignore any local solving
+local_solving/
+
+# Ignore any local answering
+local_answering/
+
+# Ignore any local addressing
+local_addressing/
+
+# Ignore any local handling
+local_handling/
+
+# Ignore any local dealing
+local_dealing/
+
+# Ignore any local treating
+local_treating/
+
+# Ignore any local managing
+local_managing/
+
+# Ignore any local coping
+local_coping/
+
+# Ignore any local handling
+local_handling/
+
+# Ignore any local enduring
+local_enduring/
+
+# Ignore any local tolerating
+local_tolerating/
+
+# Ignore any local bearing
+local_bearing/
+
+# Ignore any local suffering
+local_suffering/
+
+# Ignore any local undergoing
+local_undergoing/
+
+# Ignore any local experiencing
+local_experiencing/
+
+# Ignore any local feeling
+local_feeling/
+
+# Ignore any local sensing
+local_sensing/
+
+# Ignore any local perceiving
+local_perceiving/
+
+# Ignore any local noticing
+local_noticing/
+
+# Ignore any local observing
+local_observing/
+
+# Ignore any local witnessing
+local_witnessing/
+
+# Ignore any local beholding
+local_beholding/
+
+# Ignore any local viewing
+local_viewing/
+
+# Ignore any local watching
+local_watching/
+
+# Ignore any local looking
+local_looking/
+
+# Ignore any local seeing
+local_seeing/
+
+# Ignore any local sighting
+local_sighting/
+
+# Ignore any local gazing
+local_gazing/
+
+# Ignore any local staring
+local_staring/
+
+# Ignore any local glaring
+local_glaring/
+
+# Ignore any local peering
+local_peering/
+
+# Ignore any local squinting
+local_squinting/
+
+# Ignore any local glancing
+local_glancing/
+
+# Ignore any local glimpsing
+local_glimpsing/
+
+# Ignore any local peeking
+local_peeking/
+
+# Ignore any local peeping
+local_peeping/
+
+# Ignore any local prying
+local_prying/
+
+# Ignore any local snooping
+local_snooping/
+
+# Ignore any local spying
+local_spying/
+
+# Ignore any local surveilling
+local_surveilling/
+
+# Ignore any local monitoring
+local_monitoring/
+
+# Ignore any local observing
+local_observing/
+
+# Ignore any local tracking
+local_tracking/
+
+# Ignore any local tracing
+local_tracing/
+
+# Ignore any local following
+local_following/
+
+# Ignore any local shadowing
+local_shadowing/
+
+# Ignore any local stalking
+local_stalking/
+
+# Ignore any local hunting
+local_hunting/
+
+# Ignore any local pursuing
+local_pursuing/
+
+# Ignore any local chasing
+local_chasing/
+
+# Ignore any local trailing
+local_trailing/
+
+# Ignore any local tailing
+local_tailing/
+
+# Ignore any local dogging
+local_dogging/
+
+# Ignore any local hounding
+local_hounding/
+
+# Ignore any local plaguing
+local_plaguing/
+
+# Ignore any local tormenting
+local_tormenting/
+
+# Ignore any local torturing
+local_torturing/
+
+# Ignore any local afflicting
+local_afflicting/
+
+# Ignore any local distressing
+local_distressing/
+
+# Ignore any local troubling
+local_troubling/
+
+# Ignore any local bothering
+local_bothering/
+
+# Ignore any local annoying
+local_annoying/
+
+# Ignore any local irritating
+local_irritating/
+
+# Ignore any local vexing
+local_vexing/
+
+# Ignore any local irking
+local_irking/
+
+# Ignore any local exasperating
+local_exasperating/
+
+# Ignore any local infuriating
+local_infuriating/
+
+# Ignore any local enraging
+local_enraging/
+
+# Ignore any local angering
+local_angering/
+
+# Ignore any local maddening
+local_maddening/
+
+# Ignore any local crazing
+local_crazing/
+
+# Ignore any local deranging
+local_deranging/
+
+# Ignore any local unhinging
+local_unhinging/
+
+# Ignore any local unbalancing
+local_unbalancing/
+
+# Ignore any local destabilizing
+local_destabilizing/
+
+# Ignore any local upsetting
+local_upsetting/
+
+# Ignore any local disturbing
+local_disturbing/
+
+# Ignore any local perturbing
+local_perturbing/
+
+# Ignore any local agitating
+local_agitating/
+
+# Ignore any local shaking
+local_shaking/
+
+# Ignore any local rocking
+local_rocking/
+
+# Ignore any local rattling
+local_rattling/
+
+# Ignore any local jarring
+local_jarring/
+
+# Ignore any local jolting
+local_jolting/
+
+# Ignore any local jerking
+local_jerking/
+
+# Ignore any local twitching
+local_twitching/
+
+# Ignore any local spasming
+local_spasming/
+
+# Ignore any local convulsing
+local_convulsing/
+
+# Ignore any local shuddering
+local_shuddering/
+
+# Ignore any local trembling
+local_trembling/
+
+# Ignore any local quivering
+local_quivering/
+
+# Ignore any local quaking
+local_quaking/
+
+# Ignore any local shaking
+local_shaking/
+
+# Ignore any local vibrating
+local_vibrating/
+
+# Ignore any local oscillating
+local_oscillating/
+
+# Ignore any local fluctuating
+local_fluctuating/
+
+# Ignore any local wavering
+local_wavering/
+
+# Ignore any local varying
+local_varying/
+
+# Ignore any local changing
+local_changing/
+
+# Ignore any local alternating
+local_alternating/
+
+# Ignore any local cycling
+local_cycling/
+
+# Ignore any local rotating
+local_rotating/
+
+# Ignore any local revolving
+local_revolving/
+
+# Ignore any local spinning
+local_spinning/
+
+# Ignore any local twirling
+local_twirling/
+
+# Ignore any local swirling
+local_swirling/
+
+# Ignore any local whirling
+local_whirling/
+
+# Ignore any local wheeling
+local_wheeling/
+
+# Ignore any local turning
+local_turning/
+
+# Ignore any local twisting
+local_twisting/
+
+# Ignore any local winding
+local_winding/
+
+# Ignore any local coiling
+local_coiling/
+
+# Ignore any local curling
+local_curling/
+
+# Ignore any local bending
+local_bending/
+
+# Ignore any local flexing
+local_flexing/
+
+# Ignore any local folding
+local_folding/
+
+# Ignore any local creasing
+local_creasing/
+
+# Ignore any local crumpling
+local_crumpling/
+
+# Ignore any local wrinkling
+local_wrinkling/
+
+# Ignore any local rumpling
+local_rumpling/
+
+# Ignore any local ruffling
+local_ruffling/
+
+# Ignore any local tousling
+local_tousling/
+
+# Ignore any local disheveling
+local_disheveling/
+
+# Ignore any local messing
+local_messing/
+
+# Ignore any local tangling
+local_tangling/
+
+# Ignore any local knotting
+local_knotting/
+
+# Ignore any local weaving
+local_weaving/
+
+# Ignore any local braiding
+local_braiding/
+
+# Ignore any local plaiting
+local_plaiting/
+
+# Ignore any local intertwining
+local_intertwining/
+
+# Ignore any local interlacing
+local_interlacing/
+
+# Ignore any local entwining
+local_entwining/
+
+# Ignore any local entangling
+local_entangling/
+
+# Ignore any local snarling
+local_snarling/
+
+# Ignore any local snagging
+local_snagging/
+
+# Ignore any local catching
+local_catching/
+
+# Ignore any local hooking
+local_hooking/
+
+# Ignore any local latching
+local_latching/
+
+# Ignore any local locking
+local_locking/
+
+# Ignore any local securing
+local_securing/
+
+# Ignore any local fastening
+local_fastening/
+
+# Ignore any local tying
+local_tying/
+
+# Ignore any local binding
+local_binding/
+
+# Ignore any local wrapping
+local_wrapping/
+
+# Ignore any local packaging
+local_packaging/
+
+# Ignore any local packing
+local_packing/
+
+# Ignore any local boxing
+local_boxing/
+
+# Ignore any local crating
+local_crating/
+
+# Ignore any local containing
+local_containing/
+
+# Ignore any local enclosing
+local_enclosing/
+
+# Ignore any local encasing
+local_encasing/
+
+# Ignore any local enveloping
+local_enveloping/
+
+# Ignore any local surrounding
+local_surrounding/
+
+# Ignore any local encircling
+local_encircling/
+
+# Ignore any local encompassing
+local_encompassing/
+
+# Ignore any local embracing
+local_embracing/
+
+# Ignore any local hugging
+local_hugging/
+
+# Ignore any local cuddling
+local_cuddling/
+
+# Ignore any local snuggling
+local_snuggling/
+
+# Ignore any local nestling
+local_nestling/
+
+# Ignore any local burrowing
+local_burrowing/
+
+# Ignore any local tunneling
+local_tunneling/
+
+# Ignore any local digging
+local_digging/
+
+# Ignore any local excavating
+local_excavating/
+
+# Ignore any local mining
+local_mining/
+
+# Ignore any local quarrying
+local_quarrying/
+
+# Ignore any local drilling
+local_drilling/
+
+# Ignore any local boring
+local_boring/
+
+# Ignore any local piercing
+local_piercing/
+
+# Ignore any local puncturing
+local_puncturing/
+
+# Ignore any local perforating
+local_perforating/
+
+# Ignore any local penetrating
+local_penetrating/
+
+# Ignore any local probing
+local_probing/
+
+# Ignore any local entering
+local_entering/
+
+# Ignore any local accessing
+local_accessing/
+
+# Ignore any local reaching
+local_reaching/
+
+# Ignore any local approaching
+local_approaching/
+
+# Ignore any local nearing
+local_nearing/
+
+# Ignore any local coming
+local_coming/
+
+# Ignore any local arriving
+local_arriving/
+
+# Ignore any local landing
+local_landing/
+
+# Ignore any local touching
+local_touching/
+
+# Ignore any local contacting
+local_contacting/
+
+# Ignore any local connecting
+local_connecting/
+
+# Ignore any local joining
+local_joining/
+
+# Ignore any local linking
+local_linking/
+
+# Ignore any local coupling
+local_coupling/
+
+# Ignore any local pairing
+local_pairing/
+
+# Ignore any local matching
+local_matching/
+
+# Ignore any local mating
+local_mating/
+
+# Ignore any local marrying
+local_marrying/
+
+# Ignore any local wedding
+local_wedding/
+
+# Ignore any local uniting
+local_uniting/
+
+# Ignore any local merging
+local_merging/
+
+# Ignore any local fusing
+local_fusing/
+
+# Ignore any local blending
+local_blending/
+
+# Ignore any local mixing
+local_mixing/
+
+# Ignore any local combining
+local_combining/
+
+# Ignore any local integrating
+local_integrating/
+
+# Ignore any local synthesizing
+local_synthesizing/
+
+# Ignore any local composing
+local_composing/
+
+# Ignore any local constituting
+local_constituting/
+
+# Ignore any local forming
+local_forming/
+
+# Ignore any local making
+local_making/
+
+# Ignore any local creating
+local_creating/
+
+# Ignore any local generating
+local_generating/
+
+# Ignore any local producing
+local_producing/
+
+# Ignore any local yielding
+local_yielding/
+
+# Ignore any local giving
+local_giving/
+
+# Ignore any local bearing
+local_bearing/
+
+# Ignore any local carrying
+local_carrying/
+
+# Ignore any local bringing
+local_bringing/
+
+# Ignore any local delivering
+local_delivering/
+
+# Ignore any local fetching
+local_fetching/
+
+# Ignore any local conveying
+local_conveying/
+
+# Ignore any local transporting
+local_transporting/
+
+# Ignore any local transmitting
+local_transmitting/
+
+# Ignore any local sending
+local_sending/
+
+# Ignore any local dispatching
+local_dispatching/
+
+# Ignore any local shipping
+local_shipping/
+
+# Ignore any local mailing
+local_mailing/
+
+# Ignore any local posting
+local_posting/
+
+# Ignore any local messaging
+local_messaging/
+
+# Ignore any local emailing
+local_emailing/
+
+# Ignore any local calling
+local_calling/
+
+# Ignore any local phoning
+local_phoning/
+
+# Ignore any local ringing
+local_ringing/
+
+# Ignore any local buzzing
+local_buzzing/
+
+# Ignore any local chiming
+local_chiming/
+
+# Ignore any local sounding
+local_sounding/
+
+# Ignore any local ringing
+local_ringing/
+
+# Ignore any local pealing
+local_pealing/
+
+# Ignore any local tolling
+local_tolling/
+
+# Ignore any local knelling
+local_knelling/
+
+# Ignore any local clanging
+local_clanging/
+
+# Ignore any local clanking
+local_clanking/
+
+# Ignore any local clinking
+local_clinking/
+
+# Ignore any local tinkling
+local_tinkling/
+
+# Ignore any local jingling
+local_jingling/
+
+# Ignore any local rattling
+local_rattling/
+
+# Ignore any local clattering
+local_clattering/
+
+# Ignore any local banging
+local_banging/
+
+# Ignore any local crashing
+local_crashing/
+
+# Ignore any local slamming
+local_slamming/
+
+# Ignore any local smashing
+local_smashing/
+
+# Ignore any local thumping
+local_thumping/
+
+# Ignore any local pounding
+local_pounding/
+
+# Ignore any local thudding
+local_thudding/
+
+# Ignore any local bumping
+local_bumping/
+
+# Ignore any local knocking
+local_knocking/
+
+# Ignore any local tapping
+local_tapping/
+
+# Ignore any local rapping
+local_rapping/
+
+# Ignore any local patting
+local_patting/
+
+# Ignore any local slapping
+local_slapping/
+
+# Ignore any local smacking
+local_smacking/
+
+# Ignore any local spanking
+local_spanking/
+
+# Ignore any local whipping
+local_whipping/
+
+# Ignore any local lashing
+local_lashing/
+
+# Ignore any local flogging
+local_flogging/
+
+# Ignore any local beating
+local_beating/
+
+# Ignore any local striking
+local_striking/
+
+# Ignore any local hitting
+local_hitting/
+
+# Ignore any local punching
+local_punching/
+
+# Ignore any local socking
+local_socking/
+
+# Ignore any local slugging
+local_slugging/
+
+# Ignore any local slogging
+local_slogging/
+
+# Ignore any local slogging
+local_slogging/
+
+# Ignore any local plugging
+local_plugging/
+
+# Ignore any local stabbing
+local_stabbing/
+
+# Ignore any local sticking
+local_sticking/
+
+# Ignore any local piercing
+local_piercing/
+
+# Ignore any local impaling
+local_impaling/
+
+# Ignore any local spearing
+local_spearing/
+
+# Ignore any local skewering
+local_skewering/
+
+# Ignore any local lancing
+local_lancing/
+
+# Ignore any local goring
+local_goring/
+
+# Ignore any local butting
+local_butting/
+
+# Ignore any local ramming
+local_ramming/
+
+# Ignore any local slamming
+local_slamming/
+
+# Ignore any local dashing
+local_dashing/
+
+# Ignore any local rushing
+local_rushing/
+
+# Ignore any local bolting
+local_bolting/
+
+# Ignore any local darting
+local_darting/
+
+# Ignore any local sprinting
+local_sprinting/
+
+# Ignore any local racing
+local_racing/
+
+# Ignore any local speeding
+local_speeding/
+
+# Ignore any local hurrying
+local_hurrying/
+
+# Ignore any local hastening
+local_hastening/
+
+# Ignore any local scurrying
+local_scurrying/
+
+# Ignore any local scuttling
+local_scuttling/
+
+# Ignore any local scampering
+local_scampering/
+
+# Ignore any local skittering
+local_skittering/
+
+# Ignore any local scurrying
+local_scurrying/
+
+# Ignore any local bustling
+local_bustling/
+
+# Ignore any local hustling
+local_hustling/
+
+# Ignore any local bustling
+local_bustling/
+
+# Ignore any local moving
+local_moving/
+
+# Ignore any local shifting
+local_shifting/
+
+# Ignore any local stirring
+local_stirring/
+
+# Ignore any local budging
+local_budging/
+
+# Ignore any local nudging
+local_nudging/
+
+# Ignore any local pushing
+local_pushing/
+
+# Ignore any local pulling
+local_pulling/
+
+# Ignore any local dragging
+local_dragging/
+
+# Ignore any local tugging
+local_tugging/
+
+# Ignore any local heaving
+local_heaving/
+
+# Ignore any local hauling
+local_hauling/
+
+# Ignore any local hoisting
+local_hoisting/
+
+# Ignore any local lifting
+local_lifting/
+
+# Ignore any local raising
+local_raising/
+
+# Ignore any local elevating
+local_elevating/
+
+# Ignore any local uplifting
+local_uplifting/
+
+# Ignore any local boosting
+local_boosting/
+
+# Ignore any local increasing
+local_increasing/
+
+# Ignore any local raising
+local_raising/
+
+# Ignore any local heightening
+local_heightening/
+
+# Ignore any local enhancing
+local_enhancing/
+
+# Ignore any local enriching
+local_enriching/
+
+# Ignore any local improving
+local_improving/
+
+# Ignore any local upgrading
+local_upgrading/
+
+# Ignore any local refining
+local_refining/
+
+# Ignore any local polishing
+local_polishing/
+
+# Ignore any local perfecting
+local_perfecting/
+
+# Ignore any local honing
+local_honing/
+
+# Ignore any local sharpening
+local_sharpening/
+
+# Ignore any local honing
+local_honing/
+
+# Ignore any local whetting
+local_whetting/
+
+# Ignore any local edging
+local_edging/
+
+# Ignore any local grinding
+local_grinding/
+
+# Ignore any local sanding
+local_sanding/
+
+# Ignore any local filing
+local_filing/
+
+# Ignore any local smoothing
+local_smoothing/
+
+# Ignore any local flattening
+local_flattening/
+
+# Ignore any local leveling
+local_leveling/
+
+# Ignore any local equalizing
+local_equalizing/
+
+# Ignore any local balancing
+local_balancing/
+
+# Ignore any local stabilizing
+local_stabilizing/
+
+# Ignore any local steadying
+local_steadying/
+
+# Ignore any local calming
+local_calming/
+
+# Ignore any local soothing
+local_soothing/
+
+# Ignore any local comforting
+local_comforting/
+
+# Ignore any local consoling
+local_consoling/
+
+# Ignore any local reassuring
+local_reassuring/
+
+# Ignore any local encouraging
+local_encouraging/
+
+# Ignore any local heartening
+local_heartening/
+
+# Ignore any local inspiring
+local_inspiring/
+
+# Ignore any local motivating
+local_motivating/
+
+# Ignore any local stimulating
+local_stimulating/
+
+# Ignore any local exciting
+local_exciting/
+
+# Ignore any local thrilling
+local_thrilling/
+
+# Ignore any local exhilarating
+local_exhilarating/
+
+# Ignore any local electrifying
+local_electrifying/
+
+# Ignore any local galvanizing
+local_galvanizing/
+
+# Ignore any local energizing
+local_energizing/
+
+# Ignore any local invigorating
+local_invigorating/
+
+# Ignore any local refreshing
+local_refreshing/
+
+# Ignore any local revitalizing
+local_revitalizing/
+
+# Ignore any local rejuvenating
+local_rejuvenating/
+
+# Ignore any local restoring
+local_restoring/
+
+# Ignore any local renewing
+local_renewing/
+
+# Ignore any local regenerating
+local_regenerating/
+
+# Ignore any local resurrecting
+local_resurrecting/
+
+# Ignore any local reviving
+local_reviving/
+
+# Ignore any local resuscitating
+local_resuscitating/
+
+# Ignore any local reanimating
+local_reanimating/
+
+# Ignore any local reawakening
+local_reawakening/
+
+# Ignore any local rekindling
+local_rekindling/
+
+# Ignore any local reigniting
+local_reigniting/
+
+# Ignore any local restarting
+local_restarting/
+
+# Ignore any local rebooting
+local_rebooting/
+
+# Ignore any local resetting
+local_resetting/
+
+# Ignore any local refreshing
+local_refreshing/
+
+# Ignore any local reloading
+local_reloading/
+
+# Ignore any local renewing
+local_renewing/
+
+# Ignore any local updating
+local_updating/
+
+# Ignore any local refreshing
+local_refreshing/
+
+# Ignore any local renovating
+local_renovating/
+
+# Ignore any local refurbishing
+local_refurbishing/
+
+# Ignore any local remodeling
+local_remodeling/
+
+# Ignore any local rebuilding
+local_rebuilding/
+
+# Ignore any local reconstructing
+local_reconstructing/
+
+# Ignore any local reassembling
+local_reassembling/
+
+# Ignore any local reorganizing
+local_reorganizing/
+
+# Ignore any local rearranging
+local_rearranging/
+
+# Ignore any local reordering
+local_reordering/
+
+# Ignore any local reconfiguring
+local_reconfiguring/
+
+# Ignore any local readjusting
+local_readjusting/
+
+# Ignore any local recalibrating
+local_recalibrating/
+
+# Ignore any local retuning
+local_retuning/
+
+# Ignore any local realigning
+local_realigning/
+
+# Ignore any local redirecting
+local_redirecting/
+
+# Ignore any local rerouting
+local_rerouting/
+
+# Ignore any local rechanneling
+local_rechanneling/
+
+# Ignore any local redistributing
+local_redistributing/
+
+# Ignore any local reallocating
+local_reallocating/
+
+# Ignore any local reassigning
+local_reassigning/
+
+# Ignore any local redelegating
+local_redelegating/
+
+# Ignore any local reappointing
+local_reappointing/
+
+# Ignore any local reelecting
+local_reelecting/
+
+# Ignore any local revoting
+local_revoting/
+
+# Ignore any local rechoosing
+local_rechoosing/
+
+# Ignore any local reselecting
+local_reselecting/
+
+# Ignore any local repicking
+local_repicking/
+
+# Ignore any local reopting
+local_reopting/
+
+# Ignore any local repreferring
+local_repreferring/
+
+# Ignore any local refavoring
+local_refavoring/
+
+# Ignore any local reliking
+local_reliking/
+
+# Ignore any local reloving
+local_reloving/
+
+# Ignore any local readoring
+local_readoring/
+
+# Ignore any local reworshiping
+local_reworshiping/
+
+# Ignore any local reidolizing
+local_reidolizing/
+
+# Ignore any local readmiring
+local_readmiring/
+
+# Ignore any local rerespecting
+local_rerespecting/
+
+# Ignore any local rehonoring
+local_rehonoring/
+
+# Ignore any local reesteeming
+local_reesteeming/
+
+# Ignore any local revaluing
+local_revaluing/
+
+# Ignore any local retreasuring
+local_retreasuring/
+
+# Ignore any local recherishing
+local_recherishing/
+
+# Ignore any local reappreciating
+local_reappreciating/
+
+# Ignore any local reenjoying
+local_reenjoying/
+
+# Ignore any local rerelishing
+local_rerelishing/
+
+# Ignore any local resavoring
+local_resavoring/
+
+# Ignore any local redelighting
+local_redelighting/
+
+# Ignore any local rereveling
+local_rereveling/
+
+# Ignore any local reindulging
+local_reindulging/
+
+# Ignore any local repampering
+local_repampering/
+
+# Ignore any local respoiling
+local_respoiling/
+
+# Ignore any local recatering
+local_recatering/
+
+# Ignore any local reserving
+local_reserving/
+
+# Ignore any local reattending
+local_reattending/
+
+# Ignore any local reassisting
+local_reassisting/
+
+# Ignore any local rehelping
+local_rehelping/
+
+# Ignore any local reaiding
+local_reaiding/
+
+# Ignore any local resupporting
+local_resupporting/
+
+# Ignore any local rebacking
+local_rebacking/
+
+# Ignore any local repromoting
+local_repromoting/
+
+# Ignore any local readvocating
+local_readvocating/
+
+# Ignore any local rerecommending
+local_rerecommending/
+
+# Ignore any local resuggesting
+local_resuggesting/
+
+# Ignore any local reproposing
+local_reproposing/
+
+# Ignore any local reoffering
+local_reoffering/
+
+# Ignore any local regiving
+local_regiving/
+
+# Ignore any local redonating
+local_redonating/
+
+# Ignore any local recontributing
+local_recontributing/
+
+# Ignore any local regranting
+local_regranting/
+
+# Ignore any local rawarding
+local_rawarding/
+
+# Ignore any local re
+
