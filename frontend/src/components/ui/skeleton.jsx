@@ -1,1 +1,13 @@
-import { cn } from '@/lib/utils'; function Skeleton({ className, ...props }) { return <div className={cn('animate-pulse rounded-md bg-primary/10', className)} {...props} />; } export { Skeleton };
+import { Skeleton } from "@/components/ui/skeleton"
+
+export function SkeletonDemo() {
+  return (
+    <div className="flex items-center space-x-4">
+      <Skeleton className="h-12 w-12 rounded-full" />
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-[250px]" />
+        <Skeleton className="h-4 w-[200px]" />
+      </div>
+    </div>
+  )
+}

@@ -1,1 +1,4 @@
-#!/bin/bash cd /app && source venv/bin/activate && python3 auto_ingest.py
+#!/bin/bash
+# Auto ingest script for scrapers
+
+python scrapers/ingest_lhc.py
