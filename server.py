@@ -4,7 +4,6 @@ load_dotenv()
 import os
 import sentry_sdk
 
-# Initialize GlitchTip/Sentry error monitoring
 _glitchtip_dsn = os.environ.get('GLITCHTIP_DSN', '')
 if _glitchtip_dsn:
     sentry_sdk.init(
@@ -19,38 +18,32 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
 
-# Database
 from database import db, test_connection
 
-# Import all route modules
 from routes import search, cases, auth, citation_parser, case_search, analytics, section_search, advanced_search, export_case, download_case, ai_embedded, ai_chat, lawbot
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
     print("[STARTUP] PakistanLawApp backend starting...")
     await test_connection()
     yield
-    # Shutdown
     print("[SHUTDOWN] PakistanLawApp backend shutting down...")
 
 app = FastAPI(
     title="Pakistan Law App API",
     description="API for Pakistan Law App - Legal research platform with 369,810+ case laws",
-    version="3.0.0",
+    version="3.1.0",
     lifespan=lifespan
 )
 
-# CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configured via nginx in production
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Include all routers
 app.include_router(search.router, prefix="/api", tags=["Search"])
 app.include_router(cases.router, prefix="/api", tags=["Cases"])
 app.include_router(auth.router, prefix="/api", tags=["Auth"])
@@ -65,9 +58,47 @@ app.include_router(ai_embedded.router, prefix="/api", tags=["AI Embedded"])
 app.include_router(ai_chat.router, prefix="/api", tags=["AI Chat"])
 app.include_router(lawbot.router, prefix="/api", tags=["PakistanLawBot"])
 
+# ─── NEW LAWYER TOOLS ──────────────────────────────────────
+try:
+    from routes.case_diary import router as case_diary_router
+    app.include_router(case_diary_router, prefix="/api", tags=["Case Diary"])
+    print("[OK] case_diary")
+except Exception as e:
+    print(f"[WARN] case_diary: {e}")
+
+try:
+    from routes.document_vault import router as document_vault_router
+    app.include_router(document_vault_router, prefix="/api", tags=["Document Vault"])
+    print("[OK] document_vault")
+except Exception as e:
+    print(f"[WARN] document_vault: {e}")
+
+try:
+    from routes.contracts import router as contracts_router
+    app.include_router(contracts_router, prefix="/api", tags=["Legal Drafter"])
+    print("[OK] contracts")
+except Exception as e:
+    print(f"[WARN] contracts: {e}")
+
+try:
+    from routes.document_analyzer import router as doc_analyzer_router
+    app.include_router(doc_analyzer_router, prefix="/api", tags=["Document Analyzer"])
+    print("[OK] document_analyzer")
+except Exception as e:
+    print(f"[WARN] document_analyzer: {e}")
+
+try:
+    from routes.notes import router as notes_router
+    app.include_router(notes_router, prefix="/api", tags=["Research Notebook"])
+    print("[OK] notes")
+except Exception as e:
+    print(f"[WARN] notes: {e}")
+
+# ───────────────────────────────────────────────────────────
+
 @app.get("/api/health")
 async def health_check():
-    return {"status": "ok", "version": "3.0.0"}
+    return {"status": "ok", "version": "3.1.0"}
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
