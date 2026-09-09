@@ -23,7 +23,7 @@ from contextlib import asynccontextmanager
 from database import db, test_connection
 
 # Import all route modules
-from routes import search, cases, auth, citation_parser, case_search, analytics, section_search, advanced_search, export_case, download_case, ai_embedded, ai_chat
+from routes import search, cases, auth, citation_parser, case_search, analytics, section_search, advanced_search, export_case, download_case, ai_embedded, ai_chat, lawbot
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -63,6 +63,7 @@ app.include_router(export_case.router, prefix="/api", tags=["Export"])
 app.include_router(download_case.router, prefix="/api", tags=["Download"])
 app.include_router(ai_embedded.router, prefix="/api", tags=["AI Embedded"])
 app.include_router(ai_chat.router, prefix="/api", tags=["AI Chat"])
+app.include_router(lawbot.router, prefix="/api", tags=["PakistanLawBot"])
 
 @app.get("/api/health")
 async def health_check():
