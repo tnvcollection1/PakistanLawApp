@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, Search, BookOpen, Scale, Building2, BookMarked, Menu, X } from "lucide-react";
+import { Home, Search, BookOpen, Scale, Building2, BookMarked, Menu, X, Bot, Sparkles } from "lucide-react";
 
 const NAV_ITEMS = [
   { path: "/", label: "Home", icon: Home },
+  { path: "/lawbot", label: "LawBot AI", icon: Bot, highlight: true },
   { path: "/citation-search", label: "Citation Search", icon: Search },
   { path: "/cases", label: "Cases", icon: BookOpen },
   { path: "/courts", label: "Courts", icon: Scale },
@@ -15,12 +16,10 @@ export default function SidebarLayout({ children }) {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
 
-  // Close sidebar on route change (mobile)
   useEffect(() => {
     setIsOpen(false);
   }, [location.pathname]);
 
-  // Close on Escape key
   useEffect(() => {
     const handleEsc = (e) => {
       if (e.key === "Escape") setIsOpen(false);
@@ -29,7 +28,6 @@ export default function SidebarLayout({ children }) {
     return () => window.removeEventListener("keydown", handleEsc);
   }, []);
 
-  // Lock body scroll when sidebar open on mobile
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -41,7 +39,6 @@ export default function SidebarLayout({ children }) {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      {/* Mobile overlay */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-40 md:hidden"
@@ -49,7 +46,6 @@ export default function SidebarLayout({ children }) {
         />
       )}
 
-      {/* Hamburger button - only on mobile */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-md md:hidden"
@@ -58,7 +54,6 @@ export default function SidebarLayout({ children }) {
         {isOpen ? <X size={20} /> : <Menu size={20} />}
       </button>
 
-      {/* Sidebar */}
       <aside
         className={`fixed left-0 top-0 h-full w-64 bg-[#1a365d] text-white z-50 transition-transform duration-300 ease-in-out
           ${isOpen ? "translate-x-0" : "-translate-x-full"}
@@ -81,17 +76,20 @@ export default function SidebarLayout({ children }) {
                 to={item.path}
                 onClick={() => setIsOpen(false)}
                 className={`flex items-center gap-3 px-4 py-3 rounded-lg mb-1 transition-colors
-                  ${isActive ? "bg-[#c9a227] text-[#1a365d] font-semibold" : "hover:bg-white/10"}`}
+                  ${isActive ? "bg-[#c9a227] text-[#1a365d] font-semibold" : "hover:bg-white/10"}
+                  ${item.highlight && !isActive ? "bg-[#c9a227]/20 text-[#c9a227] hover:bg-[#c9a227]/30" : ""}`}
               >
                 <Icon size={18} />
                 <span>{item.label}</span>
+                {item.highlight && (
+                  <Sparkles size={12} className="ml-auto text-[#c9a227]" />
+                )}
               </Link>
             );
           })}
         </nav>
       </aside>
 
-      {/* Main content */}
       <main className="flex-1 overflow-y-auto min-w-0">
         {children}
       </main>
