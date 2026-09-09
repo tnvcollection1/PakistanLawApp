@@ -8,6 +8,10 @@ import CourtsPage from './pages/CourtsPage';
 import LawsPage from './pages/LawsPage';
 import JournalsPage from './pages/JournalsPage';
 import LawBotPage from './pages/LawBotPage';
+import LegalDrafterPage from './pages/LegalDrafterPage';
+import CaseDiaryPage from './pages/CaseDiaryPage';
+import DocumentVaultPage from './pages/DocumentVaultPage';
+import ResearchNotebookPage from './pages/ResearchNotebookPage';
 
 function App() {
   return (
@@ -23,6 +27,10 @@ function App() {
               <Route path="/courts" element={<CourtsPage />} />
               <Route path="/laws" element={<LawsPage />} />
               <Route path="/journals" element={<JournalsPage />} />
+              <Route path="/drafter" element={<LegalDrafterPage />} />
+              <Route path="/diary" element={<CaseDiaryPage />} />
+              <Route path="/vault" element={<DocumentVaultPage />} />
+              <Route path="/notebook" element={<ResearchNotebookPage />} />
             </Routes>
           </SidebarLayout>
         } />
