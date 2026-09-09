@@ -20,8 +20,9 @@ router = APIRouter(tags=["PakistanLawBot"])
 cases_collection = db["merged_caselaws"]
 chat_sessions_collection = db["lawbot_sessions"]
 
-OPENCLAW_URL = os.environ.get("OPENCLAW_URL", "http://localhost:18789/v1")
-DEFAULT_MODEL = os.environ.get("AI_MODEL", "moonshot/kimi-k2.6")
+# Ollama OpenAI-compatible API
+OPENCLAW_URL = os.environ.get("OPENCLAW_URL", "http://localhost:11434/v1")
+DEFAULT_MODEL = os.environ.get("AI_MODEL", "smollm2:135m")
 
 SYSTEM_PROMPT = """You are PakistanLawBot, the most advanced Pakistani legal research AI.
 You have access to 369,810+ Pakistani case laws, statutes, legal terms, and Black's Law Dictionary.
@@ -110,8 +111,9 @@ async def _search_cases(query: str, limit: int = 5) -> List[Dict]:
 
 async def _search_statutes(query: str, limit: int = 3) -> List[Dict]:
     try:
-        statutes_collection = db.get("pls_statutes", None)
-        if statutes_collection is None:
+        try:
+            statutes_collection = db["pls_statutes"]
+        except Exception:
             return []
         escaped = re.escape(query.strip())
         regex_query = {"$or": [
@@ -130,9 +132,18 @@ async def _search_statutes(query: str, limit: int = 3) -> List[Dict]:
 async def _search_legal_terms(query: str, limit: int = 3) -> List[Dict]:
     try:
         terms = []
-        dictionary_collection = db.get("pls_dictionary", None)
-        legal_terms_collection = db.get("pls_legal_terms", None)
-        blacks_law_collection = db.get("blacks_law_dictionary", None)
+        try:
+            dictionary_collection = db["pls_dictionary"]
+        except Exception:
+            dictionary_collection = None
+        try:
+            legal_terms_collection = db["pls_legal_terms"]
+        except Exception:
+            legal_terms_collection = None
+        try:
+            blacks_law_collection = db["blacks_law_dictionary"]
+        except Exception:
+            blacks_law_collection = None
         
         escaped = re.escape(query.strip())
         
