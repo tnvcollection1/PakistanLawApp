@@ -18,7 +18,7 @@ except ImportError:
 router = APIRouter(tags=["PakistanLawBot"])
 
 cases_collection = db["merged_caselaws"]
-chat_sessions_collection = db.get("lawbot_sessions", db["chat_sessions"])
+chat_sessions_collection = db["lawbot_sessions"]
 
 OPENCLAW_URL = os.environ.get("OPENCLAW_URL", "http://localhost:18789/v1")
 DEFAULT_MODEL = os.environ.get("AI_MODEL", "moonshot/kimi-k2.6")
